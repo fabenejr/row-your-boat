@@ -8,6 +8,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+## 2.0.0 - 2026-09-28
+
 ### Changed
 
 - Only the crew on the benches can row; the helmsman steers and can't row anymore.

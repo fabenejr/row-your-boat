@@ -1,6 +1,6 @@
 {
   "name": "VikingOarsmen",
-  "version_number": "1.2.0",
+  "version_number": "2.0.0",
   "website_url": "https://github.com/fabenejr/row-your-boat",
   "description": "Row your ship by hand: sit on a bench, press R and pull the oar. Each rower adds speed.",
   "dependencies": [
