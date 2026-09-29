@@ -10,8 +10,11 @@ The more of the crew rows, the faster you go, and whoever is at the helm keeps s
 - **Crew-powered speed:** each rower adds 25% of the maximum thrust, so four rowers match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
 - **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
 - **Animated oar:** the oar is the ship's own steering oar, held over the gunwale beside you like a paddle. The blade digs in ahead of you, pulls back through the water, then lifts out, turns flat and swings forward again. It appears only while rowing and disappears as soon as you get up.
+- **Blade in the water:** the lean of the oar is adjusted every frame to the water under the blade, so it stays in the water through the whole pull, over waves and while the ship rolls, and clears it on the way back. On a high hull, the oar slides down through your hands to reach the water.
+- **Splash:** the blade splashes, with sound, as it hits the water, using the game's own arrow-in-water effect.
+- **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
 - **Rowing pose:** your character holds the oar with both hands, the arms follow it through the stroke, and the torso reaches forward at the catch, pulls back through the drive and leans towards the oar.
-- **Fits every ship:** the oar rests on the actual gunwale on the side you sit on, and its height follows the real water level so the blade always bites the water.
+- **Fits every ship:** the oar rests on the actual gunwale on the side you sit on, at a height that suits the hull and the water level.
 - **Uses the game's own art:** ships without a steering oar borrow the Karve's, so no extra asset files are needed. If none can be found, a simple oar built in code is used instead.
 - **Stamina cost:** 1 stamina every 10 seconds of rowing. You stop rowing automatically when exhausted.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
@@ -62,6 +65,7 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 | Gameplay | `StaminaDrainInterval` | `10` | Seconds between drain ticks |
 | Visual | `StrokeSpeed` | `1.0` | Speed of the oar stroke (1.0 = one stroke every 1.5 seconds) |
 | Visual | `OarScale` | `0.8` | Size of the oar compared to the ship's steering oar (1.0 = same size) |
+| Visual | `Splash` | `true` | Splash and play a sound when the blade hits the water |
 | UI | `ShowMessage` | `true` | Show "Remando!" when rowing starts |
 
 ## Multiplayer
@@ -93,9 +97,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout, coding guidelines
 
 ## Roadmap ideas
 
-- Water splash effects and sound when the blade enters the water
-- Hands following the oar using inverse kinematics (IK)
-- Rowers in sync: all oars following the same stroke rhythm
+- The ship surging forward with each stroke instead of a steady push
+- Water dripping from the blade on the way back, and a small wake while it pulls
 - A dedicated oar model loaded from an AssetBundle
 
 ## Contributing

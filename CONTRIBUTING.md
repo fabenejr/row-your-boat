@@ -45,6 +45,8 @@ the decompiled game code, which is the best way to see what a method does before
 | `ShipRowing.cs` | Thrust applied by the ship owner |
 | `OarVisual.cs` | Oar placement and stroke animation |
 | `OarModel.cs` | Oar mesh (reused from the Karve, or built procedurally) |
+| `OarSplash.cs` | Splash and sound when the blade hits the water (reused from arrows) |
+| `RowerPose.cs` | Rowing pose: hands on the oar and torso motion |
 | `package/` | Thunderstore manifest and icon |
 | `scripts/release.ps1` | Release packaging (see [RELEASING.md](RELEASING.md)) |
 
@@ -70,6 +72,9 @@ There is no automated test suite (the game can't run in CI), so please check the
 - [ ] At the helm, **R** shows the "helmsman doesn't row" hint and doesn't row.
 - [ ] The oar rests on the gunwale beside the rower on both sides of the ship, without cutting through the hull.
 - [ ] The blade pulls back through the water, then lifts out, turns flat and swings forward.
+- [ ] The blade stays in the water for the whole pull, also on the longship and in rough weather.
+- [ ] The blade splashes, with sound, as it enters the water. `Splash = false` turns it off.
+- [ ] With several rowers, all oars stroke in time.
 - [ ] The rower holds the oar with both hands, the arms follow it and the torso moves with the stroke.
 - [ ] Getting up from the bench hides the oar immediately.
 - [ ] The ship accelerates smoothly and the helm still steers.

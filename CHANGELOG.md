@@ -8,6 +8,21 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+### Added
+
+- The blade splashes, with sound, as it hits the water. The effect is the game's own arrow-in-water splash,
+  and the new `Splash` setting turns it off.
+- The crew rows in time: every oar follows the same beat, taken from the network clock, so all players see
+  the same strokes.
+
+### Fixed
+
+- The blade now reaches the water and stays in it through the whole pull. The lean of the oar is adjusted every
+  frame to the water under the blade, following waves, the ship rolling and pitching, and the swing that used to
+  lift the blade out at both ends of the stroke. It leaves and re-enters the water quickly at the ends of the recovery.
+- On high hulls, an oar too short to reach the water slides down through the rower's hands instead of
+  paddling in the air.
+
 ## 2.0.0 - 2026-09-28
 
 ### Changed
