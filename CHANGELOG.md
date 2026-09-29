@@ -8,6 +8,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+## 1.2.0 - 2026-09-28
+
 ### Added
 
 - Manual rowing from a ship bench or the helm: press **R** to start/stop (or hold, with `HoldToRow`).
