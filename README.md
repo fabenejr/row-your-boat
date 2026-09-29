@@ -49,7 +49,7 @@ Close the console, climb aboard, sit on a bench and press **R**.
 
 ## Configuration
 
-The settings file is created on first launch at `BepInEx/config/com.autor.vikingoarsmen.cfg`:
+The settings file is created on first launch at `BepInEx/config/com.fabenejr.vikingoarsmen.cfg`:
 
 | Section | Key | Default | Description |
 | --- | --- | --- | --- |

@@ -13,14 +13,14 @@ namespace VikingOarsmen
     public class Plugin : BaseUnityPlugin
     {
         // Plugin identity used by BepInEx and Harmony.
-        public const string PluginGuid = "com.autor.vikingoarsmen";
+        public const string PluginGuid = "com.fabenejr.vikingoarsmen";
         public const string PluginName = "Viking Oarsmen";
         public const string PluginVersion = "1.2.0";
 
         // Shared logger so other classes can write to the BepInEx log.
         internal static ManualLogSource Log;
 
-        // User settings, stored in BepInEx/config/com.autor.vikingoarsmen.cfg.
+        // User settings, stored in BepInEx/config/com.fabenejr.vikingoarsmen.cfg.
         internal static ConfigEntry<KeyCode> RowKey;
         internal static ConfigEntry<bool> HoldToRow;
         internal static ConfigEntry<float> PowerPerRower;
