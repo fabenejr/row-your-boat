@@ -1,0 +1,12 @@
+<Project>
+  <!--
+    Copy this file to "Local.props" (same folder) and set your Valheim install path.
+    Local.props is git-ignored, so each contributor keeps their own path.
+  -->
+  <PropertyGroup>
+    <ValheimDir>C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+
+    <!-- Optional: copy VikingOarsmen.dll into BepInEx\plugins after every build. -->
+    <DeployToPlugins>false</DeployToPlugins>
+  </PropertyGroup>
+</Project>

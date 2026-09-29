@@ -1,0 +1,8 @@
+.vs/
+bin/
+obj/
+*.user
+*.suo
+
+# Machine-specific build settings (see Local.props.example)
+Local.props

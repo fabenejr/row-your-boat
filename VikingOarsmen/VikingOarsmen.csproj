@@ -1,0 +1,83 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    ValheimDir is resolved in this order:
+      1. Command line:          dotnet build -c Release /p:ValheimDir="E:\Games\Valheim"
+      2. Local.props at the repository root (git-ignored, see Local.props.example)
+      3. A Windows environment variable named ValheimDir
+      4. The default Steam install path below
+  -->
+  <Import Project="..\Local.props" Condition="Exists('..\Local.props')" />
+
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <AssemblyName>VikingOarsmen</AssemblyName>
+    <RootNamespace>VikingOarsmen</RootNamespace>
+    <Version>1.1.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <DebugType>portable</DebugType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Set to true to copy the DLL into BepInEx\plugins after each build. -->
+    <DeployToPlugins Condition="'$(DeployToPlugins)' == ''">false</DeployToPlugins>
+    <!-- Unity assemblies reference netstandard 2.1; the conflict with net462's 2.0 facade is harmless. -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ValheimDir Condition="'$(ValheimDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+    <ManagedDir>$(ValheimDir)\valheim_Data\Managed</ManagedDir>
+    <BepInExCoreDir>$(ValheimDir)\BepInEx\core</BepInExCoreDir>
+    <BepInExPluginsDir>$(ValheimDir)\BepInEx\plugins</BepInExPluginsDir>
+  </PropertyGroup>
+
+  <!-- Private=false: game assemblies are compile-time only and must not be copied to bin. -->
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExCoreDir)\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCoreDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_valheim">
+      <HintPath>$(ManagedDir)\assembly_valheim.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <HintPath>$(ManagedDir)\assembly_utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(ManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Required for Rigidbody / ForceMode. -->
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(ManagedDir)\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CheckValheimDir" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(ManagedDir)\assembly_valheim.dll')"
+           Text="assembly_valheim.dll not found in '$(ManagedDir)'. Copy Local.props.example to Local.props and set ValheimDir, or pass /p:ValheimDir=&quot;C:\path\to\Valheim&quot;." />
+    <Error Condition="!Exists('$(BepInExCoreDir)\BepInEx.dll')"
+           Text="BepInEx.dll not found in '$(BepInExCoreDir)'. Is BepInExPack Valheim installed there?" />
+  </Target>
+
+  <Target Name="DeployToPlugins" AfterTargets="Build" Condition="'$(DeployToPlugins)' == 'true'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BepInExPluginsDir)" />
+    <Message Importance="high" Text="VikingOarsmen.dll copied to $(BepInExPluginsDir)" />
+  </Target>
+
+</Project>
