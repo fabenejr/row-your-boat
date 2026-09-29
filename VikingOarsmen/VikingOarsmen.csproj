@@ -66,6 +66,11 @@
       <HintPath>$(ManagedDir)\UnityEngine.PhysicsModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Required for Animator / HumanBodyBones (rower pose). -->
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>$(ManagedDir)\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <Target Name="CheckValheimDir" BeforeTargets="ResolveAssemblyReferences">

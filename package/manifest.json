@@ -2,7 +2,7 @@
   "name": "VikingOarsmen",
   "version_number": "1.2.0",
   "website_url": "https://github.com/fabenejr/row-your-boat",
-  "description": "Row your ship by hand: sit on a bench or take the helm, press R and pull the oars. Each rower adds speed.",
+  "description": "Row your ship by hand: sit on a bench, press R and pull the oar. Each rower adds speed.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2351"
   ]

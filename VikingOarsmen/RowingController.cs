@@ -33,9 +33,9 @@ namespace VikingOarsmen
                 return;
             }
 
-            // Rowing requires sitting on a bench or at the helm of a ship (both attach the player to it).
+            // Rowing requires sitting on one of the ship's benches.
             Ship ship = Ship.GetLocalShip();
-            bool canRow = ship != null && player.IsAttachedToShip() && !player.IsDead();
+            bool canRow = ship != null && IsOnBench(player) && !player.IsDead();
 
             // Resolve what the player wants based on the configured input mode.
             bool inputAllowed = CanTakeGameplayInput();
@@ -51,13 +51,16 @@ namespace VikingOarsmen
                 wantsToRow = !s_rowing;
             }
 
-            // Explain why nothing happens when trying to row while standing on a ship.
+            // Explain why nothing happens when trying to row while standing on a ship or steering it.
             if (keyPressed && !s_rowing && ship != null && !canRow)
             {
-                player.Message(MessageHud.MessageType.Center, "Sente-se num banco ou assuma o leme para remar.");
+                string hint = player.GetControlledShip() != null
+                    ? "Quem está no leme não rema. Sente-se num banco para remar."
+                    : "Sente-se num banco para remar.";
+                player.Message(MessageHud.MessageType.Center, hint);
             }
 
-            // Getting up from the bench/helm, leaving the ship or dying stops rowing (and hides the oar).
+            // Getting up from the bench, leaving the ship or dying stops rowing (and hides the oar).
             if (!canRow)
             {
                 wantsToRow = false;
@@ -93,6 +96,21 @@ namespace VikingOarsmen
             }
 
             return nview.GetZDO().GetZDOID(RowingShipKey);
+        }
+
+        /// <summary>
+        /// True while the player sits on one of the ship's benches. Taking the helm also attaches the
+        /// player to the ship, but the helmsman is steering and can't row.
+        /// </summary>
+        private static bool IsOnBench(Player player)
+        {
+            if (!player.IsAttachedToShip() || player.GetDoodadController() != null)
+            {
+                return false;
+            }
+
+            Transform seat = player.GetAttachPoint();
+            return seat != null && seat.GetComponentInParent<Chair>() != null;
         }
 
         private static void StartRowing(Player player)

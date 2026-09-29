@@ -66,9 +66,12 @@ There is no automated test suite (the game can't run in CI), so please check the
 
 - [ ] Plugin loads: `BepInEx/LogOutput.log` shows `Viking Oarsmen vX.Y.Z loaded`, with no errors.
 - [ ] Standing on a ship, pressing **R** shows the "sit on a bench" hint and does nothing else.
-- [ ] Sitting on a bench (`spawn VikingShip`) and at the helm (`spawn Karve`, `spawn Raft`), **R** starts and stops rowing.
-- [ ] The oar sits on the gunwale, its blade enters the water on the drive and clears it on the return.
-- [ ] Getting up from the bench or helm hides the oar immediately.
+- [ ] Sitting on a bench (`spawn VikingShip`, `spawn Karve`), **R** starts and stops rowing.
+- [ ] At the helm, **R** shows the "helmsman doesn't row" hint and doesn't row.
+- [ ] The oar rests on the gunwale beside the rower on both sides of the ship, without cutting through the hull.
+- [ ] The blade pulls back through the water, then lifts out, turns flat and swings forward.
+- [ ] The rower holds the oar with both hands, the arms follow it and the torso moves with the stroke.
+- [ ] Getting up from the bench hides the oar immediately.
 - [ ] The ship accelerates smoothly and the helm still steers.
 - [ ] Stamina drops by 1 every 10 seconds. Rowing stops when exhausted.
 - [ ] Opening chat, console, inventory or map doesn't toggle rowing.

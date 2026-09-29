@@ -8,6 +8,22 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+### Changed
+
+- Only the crew on the benches can row; the helmsman steers and can't row anymore.
+  Ships without benches, like the raft, can no longer be rowed.
+- The oar is now the ship's own steering oar (the Karve's on ships without one), held over the gunwale beside
+  the rower like a paddle: the blade digs in ahead, pulls back through the water, then lifts out, feathers and
+  swings forward. It rests on the gunwale instead of cutting through the hull, its height follows the water level,
+  and it is held fixed to the rower, so it no longer drifts away from them.
+- `StrokePeriod` is replaced by `StrokeSpeed` (1.0 = one stroke every 1.5 seconds).
+
+### Added
+
+- Rowing pose: the rower holds the oar with both hands, the arms follow it through the stroke, and the torso
+  reaches forward at the catch, pulls back through the drive and leans towards the oar. Seen by all players.
+- `OarScale` setting (default 0.8) to size the oar relative to the steering oar it is copied from.
+
 ## 1.2.0 - 2026-09-28
 
 ### Added

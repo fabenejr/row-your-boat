@@ -1,18 +1,18 @@
 # Viking Oarsmen
 
 A [BepInEx](https://github.com/BepInEx/BepInEx) mod for **Valheim** that lets players row their ship by hand.
-Sit on a bench or take the helm and press a key: an oar appears on the gunwale beside you, strokes
-through the water and pushes the ship forward. The more of the crew rows, the faster you go, and
-whoever is at the helm keeps steering.
+Sit on a bench and press a key: your character grabs an oar over the side and paddles the ship forward.
+The more of the crew rows, the faster you go, and whoever is at the helm keeps steering.
 
 ## Features
 
-- **Manual rowing:** sit on a bench or take the helm, then press **R** to start rowing and press it again to stop. You can switch to hold-to-row in the config.
+- **Manual rowing:** sit on a bench, then press **R** to start rowing and press it again to stop. You can switch to hold-to-row in the config.
 - **Crew-powered speed:** each rower adds 25% of the maximum thrust, so four rowers match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
-- **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder.
-- **Animated oar:** the oar appears only while rowing and disappears as soon as you get up. It moves through a full stroke: the blade dips on the pull, then lifts and turns flat on the return.
-- **Fits every ship:** the oar rests on the actual gunwale and its angle follows the real water level, waves included. Its length adapts to how high each hull sits above the water.
-- **Uses the game's own art:** the oar model is the Karve's steering oar, so no extra asset files are needed. If that model can't be found, a simple oar built in code is used instead.
+- **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
+- **Animated oar:** the oar is the ship's own steering oar, held over the gunwale beside you like a paddle. The blade digs in ahead of you, pulls back through the water, then lifts out, turns flat and swings forward again. It appears only while rowing and disappears as soon as you get up.
+- **Rowing pose:** your character holds the oar with both hands, the arms follow it through the stroke, and the torso reaches forward at the catch, pulls back through the drive and leans towards the oar.
+- **Fits every ship:** the oar rests on the actual gunwale on the side you sit on, and its height follows the real water level so the blade always bites the water.
+- **Uses the game's own art:** ships without a steering oar borrow the Karve's, so no extra asset files are needed. If none can be found, a simple oar built in code is used instead.
 - **Stamina cost:** 1 stamina every 10 seconds of rowing. You stop rowing automatically when exhausted.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
 
@@ -35,12 +35,12 @@ and choose *Import local mod* in the manager.
 
 ## Usage
 
-1. Board a ship and **sit on a bench** (press **E** on it) or **take the helm**.
+1. Board a ship and **sit on a bench** (press **E** on it).
 2. Press **R** to start rowing. "Remando!" shows up and your oar appears.
-3. Press **R** again to stop. Rowing also stops, and the oar disappears, when you get up from the bench or helm, die or run out of stamina.
+3. Press **R** again to stop. Rowing also stops, and the oar disappears, when you get up from the bench, die or run out of stamina.
 
 You can row with the sail up. The two forces add together.
-Ships without benches, like the raft, can only be rowed from the helm.
+Only the crew on the benches row: whoever is at the helm steers. Ships without benches, like the raft, can't be rowed.
 
 ### Quick test in single player
 
@@ -60,7 +60,8 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 | Physics | `RampUpTime` | `1.5` | Seconds to reach full thrust (and to fade out) |
 | Gameplay | `StaminaDrainAmount` | `1` | Stamina per drain tick (0 disables) |
 | Gameplay | `StaminaDrainInterval` | `10` | Seconds between drain ticks |
-| Visual | `StrokePeriod` | `2.0` | Duration of one oar stroke (seconds) |
+| Visual | `StrokeSpeed` | `1.0` | Speed of the oar stroke (1.0 = one stroke every 1.5 seconds) |
+| Visual | `OarScale` | `0.8` | Size of the oar compared to the ship's steering oar (1.0 = same size) |
 | UI | `ShowMessage` | `true` | Show "Remando!" when rowing starts |
 
 ## Multiplayer

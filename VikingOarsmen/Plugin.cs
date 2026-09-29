@@ -28,7 +28,8 @@ namespace VikingOarsmen
         internal static ConfigEntry<float> RampUpTime;
         internal static ConfigEntry<float> StaminaDrainAmount;
         internal static ConfigEntry<float> StaminaDrainInterval;
-        internal static ConfigEntry<float> StrokePeriod;
+        internal static ConfigEntry<float> StrokeSpeed;
+        internal static ConfigEntry<float> OarScale;
         internal static ConfigEntry<bool> ShowMessage;
 
         // Harmony instance that owns all patches applied by this mod.
@@ -54,8 +55,10 @@ namespace VikingOarsmen
                 "Stamina consumed on every drain tick while rowing. Set to 0 to disable.");
             StaminaDrainInterval = Config.Bind("Gameplay", "StaminaDrainInterval", 10.0f,
                 "Seconds between stamina drain ticks while rowing.");
-            StrokePeriod = Config.Bind("Visual", "StrokePeriod", 2.0f,
-                "Duration (seconds) of one full oar stroke animation.");
+            StrokeSpeed = Config.Bind("Visual", "StrokeSpeed", 1.0f,
+                "Speed of the oar stroke animation. 1.0 = one stroke every 1.5 seconds.");
+            OarScale = Config.Bind("Visual", "OarScale", 0.8f,
+                "Size of the oar compared to the ship's steering oar it is copied from (1.0 = same size). Applied when rowing starts.");
             ShowMessage = Config.Bind("UI", "ShowMessage", true,
                 "Show \"Remando!\" in the center of the screen when rowing starts.");
 
@@ -64,7 +67,7 @@ namespace VikingOarsmen
             _harmony.PatchAll();
 
             // Confirm successful initialization in BepInEx/LogOutput.log.
-            Log.LogInfo($"{PluginName} v{PluginVersion} loaded. Press {RowKey.Value} while aboard a ship to row.");
+            Log.LogInfo($"{PluginName} v{PluginVersion} loaded. Press {RowKey.Value} while sitting on a ship bench to row.");
         }
 
         // Input is polled per frame here so key presses are never missed.
