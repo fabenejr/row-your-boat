@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/fabenejr/row-your-boat/blob/main/CONTRIBUTING.md
+    about: Setup, coding guidelines and in-game test checklist.

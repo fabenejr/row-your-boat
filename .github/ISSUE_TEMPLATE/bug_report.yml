@@ -1,0 +1,65 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Spawn a VikingShip
+        2. Sit on a bench
+        3. Press R
+    validations:
+      required: true
+  - type: dropdown
+    id: ship
+    attributes:
+      label: Ship type
+      multiple: true
+      options:
+        - Raft
+        - Karve
+        - Longship (VikingShip)
+        - Drakkar (VikingShip_Ashlands)
+        - Other / modded ship
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Game mode
+      options:
+        - Single player
+        - Multiplayer (hosted by a player)
+        - Multiplayer (dedicated server)
+    validations:
+      required: true
+  - type: input
+    id: mod-version
+    attributes:
+      label: Viking Oarsmen version
+      placeholder: "1.2.0"
+    validations:
+      required: true
+  - type: input
+    id: game-version
+    attributes:
+      label: Valheim version
+      description: Shown at the bottom of the main menu.
+  - type: textarea
+    id: other-mods
+    attributes:
+      label: Other installed mods
+      description: List the DLLs in BepInEx/plugins.
+  - type: textarea
+    id: log
+    attributes:
+      label: BepInEx log
+      description: Attach or paste BepInEx/LogOutput.log (drag the file here).
+      render: text

@@ -15,7 +15,7 @@ namespace VikingOarsmen
         // Plugin identity used by BepInEx and Harmony.
         public const string PluginGuid = "com.autor.vikingoarsmen";
         public const string PluginName = "Viking Oarsmen";
-        public const string PluginVersion = "1.1.0";
+        public const string PluginVersion = "1.2.0";
 
         // Shared logger so other classes can write to the BepInEx log.
         internal static ManualLogSource Log;
@@ -23,7 +23,8 @@ namespace VikingOarsmen
         // User settings, stored in BepInEx/config/com.autor.vikingoarsmen.cfg.
         internal static ConfigEntry<KeyCode> RowKey;
         internal static ConfigEntry<bool> HoldToRow;
-        internal static ConfigEntry<float> RowingPower;
+        internal static ConfigEntry<float> PowerPerRower;
+        internal static ConfigEntry<float> MaxRowingPower;
         internal static ConfigEntry<float> RampUpTime;
         internal static ConfigEntry<float> StaminaDrainAmount;
         internal static ConfigEntry<float> StaminaDrainInterval;
@@ -43,8 +44,10 @@ namespace VikingOarsmen
                 "Key used to start/stop rowing. Note: R also toggles weapon visibility in vanilla Valheim.");
             HoldToRow = Config.Bind("Controls", "HoldToRow", false,
                 "false = press once to start rowing and again to stop. true = row only while the key is held.");
-            RowingPower = Config.Bind("Physics", "RowingPower", 1.0f,
-                "1.0 = same thrust as a full sail with a strong tailwind. Lower it for slower rowing.");
+            PowerPerRower = Config.Bind("Physics", "PowerPerRower", 0.25f,
+                "Share of the maximum thrust each rower adds. 0.25 = four rowers reach full speed.");
+            MaxRowingPower = Config.Bind("Physics", "MaxRowingPower", 1.0f,
+                "Maximum total rowing thrust. 1.0 = same as a full sail with a strong tailwind.");
             RampUpTime = Config.Bind("Physics", "RampUpTime", 1.5f,
                 "Seconds for the rowing thrust to reach full power (and to fade out after stopping).");
             StaminaDrainAmount = Config.Bind("Gameplay", "StaminaDrainAmount", 1.0f,

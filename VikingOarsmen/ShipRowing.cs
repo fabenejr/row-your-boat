@@ -19,7 +19,7 @@ namespace VikingOarsmen
         private Rigidbody _body;
         private WaterVolume _previousWater;
 
-        // Current thrust (0..1), eased in and out by RampUpTime.
+        // Current thrust as a fraction of a full sail in a strong tailwind, eased by RampUpTime.
         private float _power;
 
         private void Awake()
@@ -38,10 +38,13 @@ namespace VikingOarsmen
                 return;
             }
 
-            // Ease thrust towards full power while someone rows, and back to zero when they stop.
-            float target = HasRowers() ? 1f : 0f;
+            // Each rower adds a share of the thrust, capped at the maximum.
+            float maxPower = Mathf.Max(0f, Plugin.MaxRowingPower.Value);
+            float target = Mathf.Min(maxPower, CountRowers() * Plugin.PowerPerRower.Value);
+
+            // Ease towards the target so starting, stopping and crew changes feel smooth.
             float rampTime = Mathf.Max(0.01f, Plugin.RampUpTime.Value);
-            _power = Mathf.MoveTowards(_power, target, Time.fixedDeltaTime / rampTime);
+            _power = Mathf.MoveTowards(_power, target, Mathf.Max(maxPower, 0.01f) * Time.fixedDeltaTime / rampTime);
             if (_power <= 0f || !IsFloating())
             {
                 return;
@@ -56,25 +59,25 @@ namespace VikingOarsmen
             forward.Normalize();
 
             // Vanilla sails push with m_sailForceFactor per physics step at full sail in a strong tailwind,
-            // so using the same value gives each ship type its own "wind at your back" speed.
-            float thrust = _ship.m_sailForceFactor * Plugin.RowingPower.Value * _power;
-            _body.AddForce(forward * thrust, ForceMode.VelocityChange);
+            // so scaling that value gives each ship type its own "wind at your back" speed.
+            _body.AddForce(forward * (_ship.m_sailForceFactor * _power), ForceMode.VelocityChange);
         }
 
         /// <summary>
-        /// True when at least one player aboard this ship is rowing it.
+        /// Number of players aboard this ship who are rowing it.
         /// </summary>
-        private bool HasRowers()
+        private int CountRowers()
         {
+            int count = 0;
             ZDOID shipId = _nview.GetZDO().m_uid;
             foreach (Player player in Player.GetAllPlayers())
             {
                 if (player != null && RowingController.GetRowingShip(player) == shipId && _ship.IsPlayerInBoat(player))
                 {
-                    return true;
+                    count++;
                 }
             }
-            return false;
+            return count;
         }
 
         private bool IsFloating()

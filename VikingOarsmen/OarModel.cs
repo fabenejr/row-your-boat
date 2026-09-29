@@ -16,6 +16,7 @@ namespace VikingOarsmen
         // Overall oar length in meters and how much of it stays inboard of the pivot.
         internal const float Length = 4.0f;
         internal const float InboardLength = 1.0f;
+        internal const float OutboardLength = Length - InboardLength;
 
         // Ship prefabs searched for a steering oar to reuse, in order of preference.
         private static readonly string[] s_sourceShips = { "Karve", "VikingShip" };

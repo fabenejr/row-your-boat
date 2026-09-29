@@ -1,15 +1,17 @@
 # Viking Oarsmen
 
 A [BepInEx](https://github.com/BepInEx/BepInEx) mod for **Valheim** that lets players row their ship by hand.
-Press a key while aboard: an oar appears at your side, strokes through the water and moves the ship
-as if it were sailing with the wind at its back, while whoever is at the helm keeps steering.
+Sit on a bench or take the helm and press a key: an oar appears on the gunwale beside you, strokes
+through the water and pushes the ship forward. The more of the crew rows, the faster you go, and
+whoever is at the helm keeps steering.
 
 ## Features
 
-- **Manual rowing:** press **R** aboard any ship to start rowing, then press it again to stop. You can switch to hold-to-row in the config.
-- **Tailwind speed:** rowing thrust matches a full sail in a strong tailwind, scaled per ship type (raft, karve, longship, drakkar).
+- **Manual rowing:** sit on a bench or take the helm, then press **R** to start rowing and press it again to stop. You can switch to hold-to-row in the config.
+- **Crew-powered speed:** each rower adds 25% of the maximum thrust, so four rowers match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
 - **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder.
-- **Animated oar:** the oar appears only while rowing and moves through a full stroke. The blade dips on the pull, lifts and turns flat on the return, and always sits on the side of the hull you are standing on.
+- **Animated oar:** the oar appears only while rowing and disappears as soon as you get up. It moves through a full stroke: the blade dips on the pull, then lifts and turns flat on the return.
+- **Fits every ship:** the oar rests on the actual gunwale and its angle follows the real water level, waves included. Its length adapts to how high each hull sits above the water.
 - **Uses the game's own art:** the oar model is the Karve's steering oar, so no extra asset files are needed. If that model can't be found, a simple oar built in code is used instead.
 - **Stamina cost:** 1 stamina every 10 seconds of rowing. You stop rowing automatically when exhausted.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
@@ -21,22 +23,29 @@ as if it were sailing with the wind at its back, while whoever is at the helm ke
 
 ## Installation
 
-1. Download `VikingOarsmen.dll` from the [Releases](../../releases) page, or build it yourself (see below).
+**With a mod manager (r2modman / Thunderstore Mod Manager):** download the
+`VikingOarsmen-<version>.zip` from the [Releases](https://github.com/fabenejr/row-your-boat/releases) page
+and choose *Import local mod* in the manager.
+
+**Manually:**
+
+1. Download `VikingOarsmen.dll` from the [Releases](https://github.com/fabenejr/row-your-boat/releases) page.
 2. Copy it into `<Valheim>/BepInEx/plugins/`.
-3. Launch the game. `BepInEx/LogOutput.log` should contain `Viking Oarsmen v1.1.0 loaded`.
+3. Launch the game. `BepInEx/LogOutput.log` should contain `Viking Oarsmen vX.Y.Z loaded`.
 
 ## Usage
 
-1. Board a ship. Stand near the side, or sit on a bench.
+1. Board a ship and **sit on a bench** (press **E** on it) or **take the helm**.
 2. Press **R** to start rowing. "Remando!" shows up and your oar appears.
-3. Press **R** again to stop. Rowing also stops when you leave the ship, fall in the water, die or run out of stamina.
+3. Press **R** again to stop. Rowing also stops, and the oar disappears, when you get up from the bench or helm, die or run out of stamina.
 
 You can row with the sail up. The two forces add together.
+Ships without benches, like the raft, can only be rowed from the helm.
 
 ### Quick test in single player
 
-Open the console with **F5** and run `devcommands`, `god` and `spawn Karve` while facing the water.
-Close the console, climb aboard and press **R**.
+Open the console with **F5** and run `devcommands`, `god` and `spawn VikingShip` (or `spawn Karve`) while facing the water.
+Close the console, climb aboard, sit on a bench and press **R**.
 
 ## Configuration
 
@@ -46,7 +55,8 @@ The settings file is created on first launch at `BepInEx/config/com.autor.viking
 | --- | --- | --- | --- |
 | Controls | `RowKey` | `R` | Key to start/stop rowing (R also hides weapons in vanilla) |
 | Controls | `HoldToRow` | `false` | `true` = row only while the key is held |
-| Physics | `RowingPower` | `1.0` | 1.0 = full sail with a strong tailwind |
+| Physics | `PowerPerRower` | `0.25` | Share of the maximum thrust each rower adds |
+| Physics | `MaxRowingPower` | `1.0` | Maximum total thrust (1.0 = full sail with a strong tailwind) |
 | Physics | `RampUpTime` | `1.5` | Seconds to reach full thrust (and to fade out) |
 | Gameplay | `StaminaDrainAmount` | `1` | Stamina per drain tick (0 disables) |
 | Gameplay | `StaminaDrainInterval` | `10` | Seconds between drain ticks |
@@ -70,7 +80,7 @@ Prerequisites: Visual Studio 2022+ with **.NET desktop development**, or the .NE
 2. Copy `Local.props.example` to `Local.props` and set `ValheimDir` to your Valheim folder.
    This file is git-ignored.
 3. Build:
-   - **Visual Studio:** open `VikingOarsmen.sln`, select **Release**, then press **Ctrl+Shift+B**.
+   - **Visual Studio:** open `VikingOarsmen.sln`, select **Release**, then run **Build Solution**.
    - **CLI:**
      ```bash
      dotnet build VikingOarsmen.sln -c Release
@@ -78,27 +88,19 @@ Prerequisites: Visual Studio 2022+ with **.NET desktop development**, or the .NE
 4. The output is `VikingOarsmen/bin/Release/VikingOarsmen.dll`.
    Set `DeployToPlugins` to `true` in `Local.props` to copy it into `BepInEx/plugins` on every build.
 
-### Project layout
-
-| File | Responsibility |
-| --- | --- |
-| `Plugin.cs` | BepInEx entry point, config and Harmony setup |
-| `ShipRowingPatch.cs` | Harmony patches that add the mod's components to ships and players |
-| `RowingController.cs` | Local input, stamina drain and synced rowing state |
-| `ShipRowing.cs` | Thrust applied by the ship owner |
-| `OarVisual.cs` | Oar placement and stroke animation |
-| `OarModel.cs` | Oar mesh (reused from the Karve, or built procedurally) |
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout, coding guidelines and the in-game test checklist.
 
 ## Roadmap ideas
 
 - Water splash effects and sound when the blade enters the water
 - Hands following the oar using inverse kinematics (IK)
-- Extra speed for each additional rower
+- Rowers in sync: all oars following the same stroke rhythm
 - A dedicated oar model loaded from an AssetBundle
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep code comments in English and match the existing style.
+Issues and pull requests are welcome! Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+Changes are listed in [CHANGELOG.md](CHANGELOG.md), and maintainers publish versions following [RELEASING.md](RELEASING.md).
 
 ## License
 

@@ -33,24 +33,31 @@ namespace VikingOarsmen
                 return;
             }
 
-            // Rowing requires being aboard a ship, alive and not swimming.
+            // Rowing requires sitting on a bench or at the helm of a ship (both attach the player to it).
             Ship ship = Ship.GetLocalShip();
-            bool canRow = ship != null && !player.IsDead() && !player.IsSwimming();
+            bool canRow = ship != null && player.IsAttachedToShip() && !player.IsDead();
 
             // Resolve what the player wants based on the configured input mode.
             bool inputAllowed = CanTakeGameplayInput();
             KeyCode key = Plugin.RowKey.Value;
+            bool keyPressed = inputAllowed && Input.GetKeyDown(key);
             bool wantsToRow = s_rowing;
             if (Plugin.HoldToRow.Value)
             {
                 wantsToRow = inputAllowed && Input.GetKey(key);
             }
-            else if (inputAllowed && Input.GetKeyDown(key))
+            else if (keyPressed)
             {
                 wantsToRow = !s_rowing;
             }
 
-            // Leaving the ship, dying or falling in the water stops rowing.
+            // Explain why nothing happens when trying to row while standing on a ship.
+            if (keyPressed && !s_rowing && ship != null && !canRow)
+            {
+                player.Message(MessageHud.MessageType.Center, "Sente-se num banco ou assuma o leme para remar.");
+            }
+
+            // Getting up from the bench/helm, leaving the ship or dying stops rowing (and hides the oar).
             if (!canRow)
             {
                 wantsToRow = false;

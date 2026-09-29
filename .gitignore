@@ -6,3 +6,6 @@ obj/
 
 # Machine-specific build settings (see Local.props.example)
 Local.props
+
+# Release output (scripts/release.ps1)
+dist/
