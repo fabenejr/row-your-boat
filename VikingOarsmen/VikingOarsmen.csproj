@@ -77,6 +77,11 @@
       <HintPath>$(ManagedDir)\UnityEngine.AnimationModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Required for the Image fields of Hud (gear indicator). -->
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <Target Name="CheckValheimDir" BeforeTargets="ResolveAssemblyReferences">

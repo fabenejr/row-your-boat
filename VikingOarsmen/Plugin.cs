@@ -39,7 +39,6 @@ namespace VikingOarsmen
         internal static ConfigEntry<float> StrokeSpeed;
         internal static ConfigEntry<float> OarScale;
         internal static ConfigEntry<bool> Splash;
-        internal static ConfigEntry<bool> ShowMessage;
 
         // Harmony instance that owns all patches applied by this mod.
         private Harmony _harmony;
@@ -76,8 +75,6 @@ namespace VikingOarsmen
                 "Size of the oar compared to the ship's steering oar it is copied from (1.0 = same size). Applied when rowing starts.");
             Splash = Config.Bind("Visual", "Splash", true,
                 "Splash and play a sound when the oar blade hits the water.");
-            ShowMessage = Config.Bind("UI", "ShowMessage", true,
-                "Show the current gear (\"Marcha 1\", \"Ré\", ...) in the center of the screen when it changes.");
 
             // Apply every [HarmonyPatch] found in this assembly.
             _harmony = new Harmony(PluginGuid);

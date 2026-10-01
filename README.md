@@ -72,7 +72,6 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 | Visual | `StrokeSpeed` | `1.0` | Speed of the oar stroke (1.0 = one stroke every 1.5 seconds) |
 | Visual | `OarScale` | `0.8` | Size of the oar compared to the ship's steering oar (1.0 = same size) |
 | Visual | `Splash` | `true` | Splash and play a sound when the blade hits the water |
-| UI | `ShowMessage` | `true` | Show the current gear in the center of the screen when it changes |
 
 ## Multiplayer
 

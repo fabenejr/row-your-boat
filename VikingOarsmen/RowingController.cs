@@ -87,9 +87,9 @@ namespace VikingOarsmen
             }
 
             bool gearChanged = s_desiredGear != previousGear;
-            if (gearChanged && Plugin.ShowMessage.Value)
+            if (gearChanged)
             {
-                player.Message(MessageHud.MessageType.Center, GearLabel(s_desiredGear));
+                Plugin.Log.LogDebug($"Gear {previousGear} -> {s_desiredGear}");
             }
 
             RowingGear effectiveGear = ResolveEffectiveGear(player, gearChanged);
@@ -124,6 +124,15 @@ namespace VikingOarsmen
             }
 
             return (RowingGear)nview.GetZDO().GetInt(RowingGearKey, (int)RowingGear.Stop);
+        }
+
+        /// <summary>
+        /// The gear the local player has selected with W/S, even while stamina withholds its thrust —
+        /// what the gear indicator (GearHud) shows, same as the helm shows its setting, not its speed.
+        /// </summary>
+        internal static RowingGear GetSelectedGear()
+        {
+            return s_desiredGear;
         }
 
         /// <summary>
@@ -282,18 +291,6 @@ namespace VikingOarsmen
                 case RowingGear.Half: return Plugin.StaminaDrainIntervalHalf.Value;
                 case RowingGear.Full: return Plugin.StaminaDrainIntervalFull.Value;
                 default: return Plugin.StaminaDrainIntervalSlow.Value; // Slow, Back
-            }
-        }
-
-        private static string GearLabel(RowingGear gear)
-        {
-            switch (gear)
-            {
-                case RowingGear.Back: return "Ré";
-                case RowingGear.Slow: return "Marcha 1";
-                case RowingGear.Half: return "Marcha 2";
-                case RowingGear.Full: return "Marcha 3";
-                default: return "Neutro";
             }
         }
 

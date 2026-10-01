@@ -188,12 +188,15 @@ O "15" do backlog era, na real, o multiplicador **1.5** (não um valor absoluto 
 
 ## 9. Checklist de teste manual (adenda ao `CONTRIBUTING.md`)
 
-- [ ] Sem o remo equipado, sentar no banco não ativa nada (sem hint de R, já que R não existe mais).
-- [ ] Com o remo equipado e sentado, modo remar ativa sozinho em neutro (sem força nenhuma).
-- [ ] W avança marcha a marcha (1→2→3), S recua e entra em ré, não dá pra pular direto de 1 pra 3.
-- [ ] Ré realmente empurra o barco pra trás.
-- [ ] Trocar de arma ou levantar do banco encerra o modo remar imediatamente.
-- [ ] Estamina se comporta conforme D1/D2 (confirmar visualmente a mecânica escolhida).
-- [ ] Remo craftável na bancada nível 1 por 6 Madeira-fina, aparece com ícone e modelo (mesmo que temporário).
-- [ ] Remo funciona como arma normal fora do barco (ataque, stagger, knockback) sem travar nada.
+- [x] Sem o remo equipado, sentar no banco não ativa nada (sem hint de R, já que R não existe mais).
+- [x] Com o remo equipado e sentado, modo remar ativa sozinho em neutro (sem força nenhuma).
+- [x] W avança marcha a marcha (1→2→3), S recua e entra em ré, não dá pra pular direto de 1 pra 3.
+- [x] Ré realmente empurra o barco pra trás.
+- [x] Trocar de arma ou levantar do banco encerra o modo remar imediatamente.
+- [x] Estamina se comporta conforme D1/D2 (confirmar visualmente a mecânica escolhida).
+- [x] Remo craftável na bancada nível 1 por 6 Madeira-fina, aparece com ícone e modelo (mesmo que temporário).
+- [x] Remo funciona como arma normal fora do barco (ataque, stagger, knockback) sem travar nada.
 - [ ] Multiplayer: dois jogadores em marchas diferentes somam/subtraem força corretamente.
+
+# Ajustes
+- [x] Visual de "marcha" igual ao controle do leme, em que aparecem  setas, que indicam as marchas, sendo uma pra cima a marcha 1, duas para cima a marcha 2 e 3 para cima a marcha três, e a ré como uma seta para baixo, com um ícone no meio. O icone do meio no leme é um timão, podemos usar ele temporariamente, mas a ideia que no futuro seja um remo. Com a elaboração dessa UI não se mais faz necessário o indicador de mensagens falando qual marcha foi "engatada" naquele momento.

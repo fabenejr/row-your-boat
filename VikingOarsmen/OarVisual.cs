@@ -97,6 +97,9 @@ namespace VikingOarsmen
         private bool _fitted;
         private Vector3 _localRowerPosition;
 
+        // Top of the gunwale right beside the seat, in ship space: where the gear indicator sits (see GearHud).
+        private Vector3 _localGunwalePoint;
+
         // Shaft length below the fulcrum once fitted (meters), and its current lean (degrees).
         private float _bladeLength;
         private float _tilt = BaseTilt;
@@ -153,6 +156,22 @@ namespace VikingOarsmen
         }
 
         /// <summary>
+        /// World position of the gunwale beside the rower's seat, on the side they row over. It moves only
+        /// with the ship, never with the stroke or the rower's pose. False until the oar has been fitted.
+        /// </summary>
+        internal bool TryGetGunwalePoint(out Vector3 point)
+        {
+            if (!_fitted || _ship == null || _oar == null || !_oar.Root.activeSelf)
+            {
+                point = Vector3.zero;
+                return false;
+            }
+
+            point = _ship.transform.TransformPoint(_localGunwalePoint);
+            return true;
+        }
+
+        /// <summary>
         /// Looks up the ship this player is rowing from the synced ZDO, caching the instance.
         /// </summary>
         private Ship ResolveRowingShip()
@@ -205,6 +224,9 @@ namespace VikingOarsmen
             fulcrum = onGunwale
                 ? new Vector3(side * (halfWidth + ShaftGap), gunwaleTop, localRower.z + StrokeForward)
                 : localRower + new Vector3(side * FallbackSideOffset, FallbackHeight, StrokeForward);
+            _localGunwalePoint = onGunwale
+                ? new Vector3(side * halfWidth, gunwaleTop, localRower.z)
+                : localRower + new Vector3(side * FallbackSideOffset, FallbackHeight, 0f);
 
             // Raise it until the blade only dips BladeDepth into the water mid-drive at the base lean, but keep
             // it on the gunwale. The lean then follows the water every frame (see PoseOar).

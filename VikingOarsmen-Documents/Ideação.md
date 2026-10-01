@@ -32,6 +32,8 @@ Com base na primeira avaliação do que já foi feito do mod, observações de g
 	- Hitbox com 2x mais range
 
 ## 2. Movimento
+- O personagem está ficando com o remo na mão e mais o remo que "spawna" ao iniciar o ato de remar. Remover o remo que antes aparecia ao iniciar, vamos usar somente o remo equipado que é a arma
+- Ao ativar o modo do remo, no neutro, o personagem está remando. Ajustar para somente segurar o remo e ficar sentado mas sem fazer movimento de remar.
 - Retrabalhar o movimento de remada com objetivo plástico
 - Movimento de ataque do remo como arma
 ## 3. Asset do remo

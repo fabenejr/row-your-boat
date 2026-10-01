@@ -44,6 +44,19 @@ namespace VikingOarsmen
         }
 
         /// <summary>
+        /// Adds the rower's gear indicator to the HUD.
+        /// </summary>
+        [HarmonyPatch(typeof(Hud), "Awake")]
+        [HarmonyPostfix]
+        private static void Hud_Awake_Postfix(Hud __instance)
+        {
+            if (__instance.GetComponent<GearHud>() == null)
+            {
+                __instance.gameObject.AddComponent<GearHud>();
+            }
+        }
+
+        /// <summary>
         /// Stops movement input from standing the rower up while rowing. Vanilla auto-detaches any
         /// seated player on movement input unless they're a doodad controller (like the helm) — rowers
         /// aren't one (see RowingController.IsRowingMode), so without this W/S would stand them up

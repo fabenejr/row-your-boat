@@ -32,6 +32,9 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 - Rowers now leave the bench only with **E** or **Jump**, same as the helm. Previously W/S stood the rower
   up immediately (same vanilla rule that stands anyone up on movement input, which the helm is exempt from
   by being a "doodad controller" — rowers now get the same exemption for movement without becoming one).
+- The selected gear is shown with the helm's own arrows (one, two or three up for gears 1–3, one down for
+  reverse) around the steering-wheel icon, on the gunwale beside the rower's bench, instead of a message in the center of the
+  screen. The `ShowMessage` setting is **removed**.
 
 ### Fixed
 
