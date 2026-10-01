@@ -38,14 +38,15 @@ namespace VikingOarsmen
                 return;
             }
 
-            // Each rower adds a share of the thrust, capped at the maximum.
+            // Each rower adds a share of the thrust weighted by their gear (negative for reverse),
+            // capped symmetrically so a crew rowing hard backward can't exceed full-ahead thrust either.
             float maxPower = Mathf.Max(0f, Plugin.MaxRowingPower.Value);
-            float target = Mathf.Min(maxPower, CountRowers() * Plugin.PowerPerRower.Value);
+            float target = Mathf.Clamp(SumRowingWeight() * Plugin.PowerPerRower.Value, -maxPower, maxPower);
 
-            // Ease towards the target so starting, stopping and crew changes feel smooth.
+            // Ease towards the target so starting, stopping, crew changes and gear shifts feel smooth.
             float rampTime = Mathf.Max(0.01f, Plugin.RampUpTime.Value);
             _power = Mathf.MoveTowards(_power, target, Mathf.Max(maxPower, 0.01f) * Time.fixedDeltaTime / rampTime);
-            if (_power <= 0f || !IsFloating())
+            if (Mathf.Approximately(_power, 0f) || !IsFloating())
             {
                 return;
             }
@@ -64,20 +65,34 @@ namespace VikingOarsmen
         }
 
         /// <summary>
-        /// Number of players aboard this ship who are rowing it.
+        /// Sum of every rower's gear weight aboard this ship (see VikingOarsmen-Documents/Plano-Marchas-e-Remo.md
+        /// section 5): Slow is the PowerPerRower baseline (weight 1), Half/Full multiply it, Back negates it,
+        /// Stop (neutral, or a stamina-suspended boost — see RowingController.ResolveEffectiveGear) contributes none.
         /// </summary>
-        private int CountRowers()
+        private float SumRowingWeight()
         {
-            int count = 0;
+            float sum = 0f;
             ZDOID shipId = _nview.GetZDO().m_uid;
             foreach (Player player in Player.GetAllPlayers())
             {
                 if (player != null && RowingController.GetRowingShip(player) == shipId && _ship.IsPlayerInBoat(player))
                 {
-                    count++;
+                    sum += GetGearWeight(RowingController.GetRowingGear(player));
                 }
             }
-            return count;
+            return sum;
+        }
+
+        private static float GetGearWeight(RowingGear gear)
+        {
+            switch (gear)
+            {
+                case RowingGear.Back: return Plugin.ReverseMultiplier.Value;
+                case RowingGear.Slow: return 1f;
+                case RowingGear.Half: return Plugin.Gear2Multiplier.Value;
+                case RowingGear.Full: return Plugin.Gear3Multiplier.Value;
+                default: return 0f; // Stop
+            }
         }
 
         private bool IsFloating()

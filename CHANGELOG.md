@@ -10,12 +10,28 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ### Added
 
-- The mod now depends on [Jötunn](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/), used to add
-  the new oar item/recipe planned for the rowing system refactor. Install it alongside BepInExPack Valheim.
+- The mod now depends on [Jötunn](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/). Install it
+  alongside BepInExPack Valheim.
+- A craftable oar (tier-1 workbench, 6 Fine Wood), based on the Club. Equipping it is now required to row,
+  and it works as a real weapon when you're not on a ship.
+- Gear shifting: with the oar equipped and seated, rowing starts automatically in neutral; W/S step through
+  reverse, neutral and gears 1–3 exactly like the ship's own rudder (minus steering). Each gear has its own
+  thrust (`Gear2Multiplier`, `Gear3Multiplier`, `ReverseMultiplier`) and stamina cadence
+  (`StaminaDrainIntervalSlow/Half/Full`).
 - The blade splashes, with sound, as it hits the water. The effect is the game's own arrow-in-water splash,
   and the new `Splash` setting turns it off.
 - The crew rows in time: every oar follows the same beat, taken from the network clock, so all players see
   the same strokes.
+
+### Changed
+
+- Rowing no longer toggles with a key: it starts and stops with the oar and the bench. The `RowKey` and
+  `HoldToRow` settings are **removed**; `StaminaDrainInterval` is renamed `StaminaDrainIntervalSlow`.
+- Stamina drain is now a per-stroke cost (like swinging a weapon) instead of a flat drain over time: running
+  out withholds that gear's thrust until stamina refills, instead of stopping rowing outright.
+- Rowers now leave the bench only with **E** or **Jump**, same as the helm. Previously W/S stood the rower
+  up immediately (same vanilla rule that stands anyone up on movement input, which the helm is exempt from
+  by being a "doodad controller" — rowers now get the same exemption for movement without becoming one).
 
 ### Fixed
 

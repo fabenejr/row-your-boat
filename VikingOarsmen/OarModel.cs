@@ -145,9 +145,10 @@ namespace VikingOarsmen
         }
 
         /// <summary>
-        /// The rudder may contain several meshes (hinges, LODs); the longest one is the oar itself.
+        /// The rudder (or any prefab hierarchy) may contain several meshes (hinges, LODs); the longest
+        /// one is the oar itself. Also reused by OarItem to find the mesh to replace on the item prefab.
         /// </summary>
-        private static MeshFilter FindLongestMesh(Transform rudder)
+        internal static MeshFilter FindLongestMesh(Transform rudder)
         {
             MeshFilter best = null;
             float bestLength = 0f;

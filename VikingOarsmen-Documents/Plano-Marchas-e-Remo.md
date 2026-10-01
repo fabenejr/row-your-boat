@@ -59,6 +59,25 @@ O leme é acionado via `IDoodadController`/`Player.m_doodadController`, que só 
 - `m_attackRange` e `m_speedFactor` do **Club de verdade** só são conhecidos lendo o prefab clonado em tempo de execução (quando o Jötunn/ObjectDB já carregou os itens vanilla). O plano é: no primeiro boot, clonar o Club, **logar os valores reais** (`Plugin.Log.LogInfo`) do Club original antes de qualquer alteração, e só então aplicar os multiplicadores (×2 no range, e o fator de ×3 na duração do golpe) sobre o valor real — nunca sobre o default genérico da tabela acima.
 - Não decompilei a direção exata de `m_speedFactor` (se maior = ataque mais rápido ou mais lento). Vou confirmar isso empiricamente comparando o valor do Club com sua duração de ataque conhecida (que já é familiar de jogar) antes de aplicar a fórmula — detalhe de implementação, não bloqueia o planejamento.
 
+### 1.3 Bug encontrado em teste: W/S levantava o remador do banco
+
+`Player.SetControls` desanexa (`AttachStop()`) qualquer jogador sentado assim que recebe input de
+movimento (`movedir != 0`) — **a menos que** `GetDoodadController() != null`. É assim que o leme evita
+isso: `ShipControlls` (componente do leme) implementa `IDoodadController`, e vira o controlador do
+jogador via `StartDoodadControl` ao assumir o leme, tornando-o imune a essa checagem.
+
+Não dá pra fazer o remador virar um `IDoodadController` de verdade: `GetControlledComponent()` alimentaria
+`Player.GetControlledShip()` (faria o remador ser lido como "no leme" em qualquer lugar do jogo que
+cheque isso) e `UpdateDoodadControls` giraria o `transform` do jogador pra acompanhar o rumo do barco a
+cada frame — o que quebraria a matemática do `OarVisual` (ela assume `transform.rotation` igual ao do
+assento, só mantido hoje porque nada mais escreve nessa rotação).
+
+Solução adotada: patch cirúrgico (prefix) em `Player.SetControls` que zera `movedir` só quando
+`RowingController.IsRowingMode` é verdadeiro — sem tocar em `jump` (continua sendo uma saída válida,
+igual ao leme) nem virar `IDoodadController`. Saída por **E** (interagir) foi adicionada à mão em
+`RowingController.Update()` (`player.AttachStop()` direto), já que `Chair` não tem esse botão de saída
+nativo (diferente do leme, que já tem via `ShipControlls.OnUseStop`).
+
 ## 2. Modelo de dados novo
 
 Hoje `RowingController` guarda só o ZDOID do barco (`VikingOarsmen_RowingShip`) no ZDO do jogador — presença dele já significa "estou remando". Isso **continua** sendo a flag de "estou em modo remar" (sentado + remo equipado). Precisa de **um campo novo**:
@@ -111,11 +130,11 @@ IntervalFull  < IntervalHalf    ("3 consome mais rápido que 2")
 
 **Detalhe que eu estou resolvendo por conta própria (avisar se errado):** quando o tick falha por falta de estamina, a marcha escolhida **não muda sozinha** — só aquela remada específica não produz empuxo (contribuição = 0 naquele instante), e o jogador continua tentando a cada intervalo até ter estamina de novo. Isso é mais fiel à analogia "golpe de arma que não sai" (voce não troca de arma só porque um golpe não saiu) do que forçar uma queda de marcha automática.
 
-Defaults propostos (ajustáveis em config, como todo o resto):
-- `StaminaDrainAmount` = 1 (mantém o valor atual)
-- `StaminaDrainIntervalSlow` / `StaminaDrainIntervalBack` = 10s (mantém o valor atual)
-- `StaminaDrainIntervalHalf` = 6s
-- `StaminaDrainIntervalFull` = 3s
+Defaults (ajustados em teste e já aplicados em `Plugin.cs`):
+- `StaminaDrainAmount` = 6
+- `StaminaDrainIntervalSlow` / `StaminaDrainIntervalBack` = 2s
+- `StaminaDrainIntervalHalf` = 1.5s
+- `StaminaDrainIntervalFull` = 1s
 
 ### [Decidido] D3 — Empuxo por marcha
 Multiplicadores sobre `PowerPerRower` (que vira a base da marcha `Slow`). Defaults propostos:
@@ -151,11 +170,11 @@ O "15" do backlog era, na real, o multiplicador **1.5** (não um valor absoluto 
 | `Gear2Multiplier` | 1.5 | novo |
 | `Gear3Multiplier` | 2.0 | novo |
 | `ReverseMultiplier` | -1.0 | novo |
-| `MaxRowingPower` | 1.0 (mantido) | agora é um clamp simétrico (-Max..+Max) |
-| `StaminaDrainAmount` | 1 (mantido) | custo por remada, compartilhado entre marchas |
-| `StaminaDrainIntervalSlow` | 10s | renomeia o atual `StaminaDrainInterval` |
-| `StaminaDrainIntervalHalf` | 6s | novo |
-| `StaminaDrainIntervalFull` | 3s | novo |
+| `MaxRowingPower` | 1.5 (ajustado em teste; era 1.0) | agora é um clamp simétrico (-Max..+Max) |
+| `StaminaDrainAmount` | 6 (ajustado em teste; era 1) | custo por remada, compartilhado entre marchas |
+| `StaminaDrainIntervalSlow` | 2s (ajustado em teste; era 10s) | renomeia o atual `StaminaDrainInterval` |
+| `StaminaDrainIntervalHalf` | 1.5s (ajustado em teste; era 6s) | novo |
+| `StaminaDrainIntervalFull` | 1s (ajustado em teste; era 3s) | novo |
 | ~~`RowKey`~~ | — | **removido** (D4) |
 | ~~`HoldToRow`~~ | — | **removido** (D4) |
 

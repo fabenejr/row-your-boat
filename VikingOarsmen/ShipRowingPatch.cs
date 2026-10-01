@@ -1,9 +1,11 @@
 using HarmonyLib;
+using UnityEngine;
 
 namespace VikingOarsmen
 {
     /// <summary>
-    /// Harmony patches that attach the mod's components to vanilla objects when they spawn.
+    /// Harmony patches that attach the mod's components to vanilla objects when they spawn, and the one
+    /// behavior patch rowing needs (see Player_SetControls_Prefix).
     /// </summary>
     [HarmonyPatch]
     internal static class ShipRowingPatch
@@ -38,6 +40,23 @@ namespace VikingOarsmen
             if (__instance.GetComponent<OarVisual>() == null)
             {
                 __instance.gameObject.AddComponent<OarVisual>();
+            }
+        }
+
+        /// <summary>
+        /// Stops movement input from standing the rower up while rowing. Vanilla auto-detaches any
+        /// seated player on movement input unless they're a doodad controller (like the helm) — rowers
+        /// aren't one (see RowingController.IsRowingMode), so without this W/S would stand them up
+        /// instead of shifting gear. Jump still exits normally; RowingController.Update() also handles
+        /// the interact (E) key explicitly, same two ways out as the helm.
+        /// </summary>
+        [HarmonyPatch(typeof(Player), "SetControls")]
+        [HarmonyPrefix]
+        private static void Player_SetControls_Prefix(Player __instance, ref Vector3 movedir)
+        {
+            if (__instance == Player.m_localPlayer && RowingController.IsRowingMode(__instance))
+            {
+                movedir = Vector3.zero;
             }
         }
     }

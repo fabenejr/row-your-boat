@@ -41,9 +41,11 @@ the decompiled game code, which is the best way to see what a method does before
 | File | Responsibility |
 | --- | --- |
 | `Plugin.cs` | BepInEx entry point, config and Harmony setup |
+| `OarItem.cs` | Registers the craftable oar item/weapon and its recipe via Jötunn |
+| `RowingGear.cs` | The `RowingGear` enum (mirrors `Ship.Speed`) |
 | `ShipRowingPatch.cs` | Harmony patches that add the mod's components to ships and players |
-| `RowingController.cs` | Local input, stamina drain and synced rowing state |
-| `ShipRowing.cs` | Thrust applied by the ship owner |
+| `RowingController.cs` | Local input (gear shifting, stamina checks) and synced rowing/gear state |
+| `ShipRowing.cs` | Gear-weighted thrust applied by the ship owner |
 | `OarVisual.cs` | Oar placement and stroke animation |
 | `OarModel.cs` | Oar mesh (reused from the Karve, or built procedurally) |
 | `OarSplash.cs` | Splash and sound when the blade hits the water (reused from arrows) |
@@ -68,20 +70,25 @@ the decompiled game code, which is the best way to see what a method does before
 There is no automated test suite (the game can't run in CI), so please check these by hand before opening a PR:
 
 - [ ] Plugin loads: `BepInEx/LogOutput.log` shows `Viking Oarsmen vX.Y.Z loaded`, with no errors.
-- [ ] Standing on a ship, pressing **R** shows the "sit on a bench" hint and does nothing else.
-- [ ] Sitting on a bench (`spawn VikingShip`, `spawn Karve`), **R** starts and stops rowing.
-- [ ] At the helm, **R** shows the "helmsman doesn't row" hint and doesn't row.
+- [ ] The oar is craftable at a tier-1 workbench for 6 Fine Wood, with an icon and a model (temporary mesh is fine).
+- [ ] Sitting on a bench without the oar equipped: pressing W/S shows the "equip the oar" hint and does nothing else.
+- [ ] Sitting on a bench (`spawn VikingShip`, `spawn Karve`) with the oar equipped: rowing starts automatically in neutral.
+- [ ] W steps neutral → 1 → 2 → 3 (no skipping); S steps the other way into reverse. Same one-degree-at-a-time behavior as the ship's own rudder.
+- [ ] W/S never stand the rower up. Only **E** (interact) or **Jump** get off the bench, same two ways out as the helm.
+- [ ] Reverse actually pushes the ship backward.
+- [ ] At the helm, W/S still steer the ship as usual and never start rowing.
 - [ ] The oar rests on the gunwale beside the rower on both sides of the ship, without cutting through the hull.
 - [ ] The blade pulls back through the water, then lifts out, turns flat and swings forward.
 - [ ] The blade stays in the water for the whole pull, also on the longship and in rough weather.
 - [ ] The blade splashes, with sound, as it enters the water. `Splash = false` turns it off.
 - [ ] With several rowers, all oars stroke in time.
 - [ ] The rower holds the oar with both hands, the arms follow it and the torso moves with the stroke.
-- [ ] Getting up from the bench hides the oar immediately.
+- [ ] Getting up from the bench, or switching away from the oar, hides it immediately.
 - [ ] The ship accelerates smoothly and the helm still steers.
-- [ ] Stamina drops by 1 every 10 seconds. Rowing stops when exhausted.
-- [ ] Opening chat, console, inventory or map doesn't toggle rowing.
-- [ ] *(If possible)* With two players, each sees the other's oar and two rowers are faster than one.
+- [ ] Stamina drains per stroke, faster in gear 2/3 than gear 1/reverse. Running out withholds that gear's thrust (selected gear doesn't change) until stamina refills enough for the next stroke.
+- [ ] Opening chat, console, inventory or map doesn't shift gear.
+- [ ] The oar works as a normal weapon outside a ship (attack, stagger, knockback) without side effects.
+- [ ] *(If possible)* With two players, each sees the other's oar, and rowing in different gears adds/subtracts thrust correctly.
 
 Useful console commands (**F5**): `devcommands`, `god`, `spawn VikingShip`, `spawn Karve`, `spawn Raft`.
 
