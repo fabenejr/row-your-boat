@@ -10,6 +10,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ### Added
 
+- The mod now depends on [Jötunn](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/), used to add
+  the new oar item/recipe planned for the rowing system refactor. Install it alongside BepInExPack Valheim.
 - The blade splashes, with sound, as it hits the water. The effect is the game's own arrow-in-water splash,
   and the new `Splash` setting turns it off.
 - The crew rows in time: every oar follows the same beat, taken from the network clock, so all players see

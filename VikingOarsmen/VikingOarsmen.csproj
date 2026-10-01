@@ -31,6 +31,12 @@
     <BepInExPluginsDir>$(ValheimDir)\BepInEx\plugins</BepInExPluginsDir>
   </PropertyGroup>
 
+  <!-- Jötunn is a separate mod the player installs themselves (see package/manifest.json dependencies);
+       ExcludeAssets/PrivateAssets keep it compile-time only, like the HintPath references below. -->
+  <ItemGroup>
+    <PackageReference Include="JotunnLib" Version="2.30.2" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
   <!-- Private=false: game assemblies are compile-time only and must not be copied to bin. -->
   <ItemGroup>
     <Reference Include="BepInEx">

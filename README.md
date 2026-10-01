@@ -23,6 +23,7 @@ The more of the crew rows, the faster you go, and whoever is at the helm keeps s
 
 - Valheim (PC)
 - [BepInExPack Valheim](https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/)
+- [Jötunn, the Valheim Library](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/)
 
 ## Installation
 

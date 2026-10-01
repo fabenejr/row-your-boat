@@ -15,7 +15,8 @@ By participating you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 Requirements:
 
 - Windows with **Visual Studio 2022+** (".NET desktop development" workload) or the **.NET SDK**
-- **Valheim** with **BepInExPack Valheim** installed
+- **Valheim** with **BepInExPack Valheim** and **Jötunn** installed (the project references `JotunnLib` via
+  NuGet to compile against it, but running the game still needs `Jotunn.dll` in `BepInEx/plugins`)
 
 Steps:
 

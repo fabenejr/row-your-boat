@@ -4,6 +4,7 @@
   "website_url": "https://github.com/fabenejr/row-your-boat",
   "description": "Row your ship by hand: sit on a bench, press R and pull the oar. Each rower adds speed.",
   "dependencies": [
-    "denikson-BepInExPack_Valheim-5.4.2351"
+    "denikson-BepInExPack_Valheim-5.4.2351",
+    "ValheimModding-Jotunn-2.30.2"
   ]
 }

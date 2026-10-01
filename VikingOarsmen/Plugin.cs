@@ -2,6 +2,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using Jotunn;
 using UnityEngine;
 
 namespace VikingOarsmen
@@ -9,7 +10,12 @@ namespace VikingOarsmen
     /// <summary>
     /// Mod entry point, instantiated by BepInEx when the game starts.
     /// </summary>
+    /// <remarks>
+    /// No [NetworkCompatibility] here: this mod stays usable by only part of the crew and dedicated
+    /// servers never need it (see README "Multiplayer"), unlike a typical Jotunn content mod.
+    /// </remarks>
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
+    [BepInDependency(Main.ModGuid)]
     public class Plugin : BaseUnityPlugin
     {
         // Plugin identity used by BepInEx and Harmony.
