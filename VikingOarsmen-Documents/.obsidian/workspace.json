@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Steering.md",
+                "file": "Plano-Marchas-e-Remo.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Steering"
+              "title": "Plano-Marchas-e-Remo"
             }
           }
         ]
@@ -99,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Steering.md",
+                "file": "Plano-Marchas-e-Remo.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +118,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Steering.md",
+                "file": "Plano-Marchas-e-Remo.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Steering.md",
+                "file": "Plano-Marchas-e-Remo.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -190,11 +190,20 @@
   },
   "active": "b077cd01c1164b6c",
   "lastOpenFiles": [
-    "Steering.md.tmp.4911.7c8040806a4f",
-    "Analise-do-Projeto.md",
-    "Steering.md.tmp.4911.fc5176c412b0",
+    "Plano-Marchas-e-Remo.md.tmp.4911.54151c700ae0",
+    "Plano-Marchas-e-Remo.md.tmp.4911.752a9c415d0e",
+    "Plano-Marchas-e-Remo.md.tmp.4911.fc20a2b3d91d",
     "Ideação.md",
+    "Plano-Marchas-e-Remo.md.tmp.4911.72a4616a5601",
+    "Plano-Marchas-e-Remo.md.tmp.4911.a7e8aa5e00f2",
+    "Plano-Marchas-e-Remo.md.tmp.4911.bc969b9203a2",
+    "Plano-Marchas-e-Remo.md.tmp.4911.eb8890dd39ff",
+    "Plano-Marchas-e-Remo.md",
+    "Plano-Marchas-e-Remo.md.tmp.4911.7d2e0ba4c359",
+    "Analise-do-Projeto.md",
     "Steering.md",
-    "Analise-do-Projeto.md.tmp.4911.fe60b9fec46b"
+    "Steering.md.tmp.4911.fbc872f99313",
+    "Steering.md.tmp.4911.dd7d04b0c97f",
+    "Steering.md.tmp.4911.7c8040806a4f"
   ]
 }
