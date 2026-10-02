@@ -7,7 +7,7 @@ namespace VikingOarsmen
 {
     /// <summary>
     /// Registers the rower's oar: a weapon cloned from the Club, craftable at a tier-1 workbench, that
-    /// will gate rowing once equipped (see VikingOarsmen-Documents/Plano-Marchas-e-Remo.md, items D5/D6
+    /// gates rowing while equipped (see VikingOarsmen-Documents/Plano-Marchas-e-Remo.md, items D5/D6
     /// for why stats mostly follow the Club as-is). The visual is our own oar model, loaded from the
     /// AssetBundle embedded in this DLL.
     /// </summary>
@@ -16,7 +16,7 @@ namespace VikingOarsmen
         internal const string PrefabName = "VikingOarsmen_Oar";
 
         // Overrides from the Club baseline (section 1.2 of the plan). Fields not listed here are left
-        // exactly as the Club has them (D5: "seguir igual ao Club por padrão" for anything undecided).
+        // exactly as the Club has them (anything undecided follows the Club by default, plan item D5).
         private const float Weight = 4f;
         private const float Durability = 50f;
         private const float Knockback = 50f;
@@ -101,8 +101,8 @@ namespace VikingOarsmen
 
             ItemConfig config = new ItemConfig
             {
-                Name = "Remo",
-                Description = "Remo viking. Precisa estar equipado para remar, sentado no banco de um barco.",
+                Name = "Oar",
+                Description = "A viking oar. Equip it and sit on a ship's bench to row.",
                 CraftingStation = CraftingStations.Workbench,
                 MinStationLevel = 1,
                 Weight = Weight,
@@ -123,7 +123,6 @@ namespace VikingOarsmen
             MakeTwoHanded(shared);
 
             Attack attack = shared.m_attack;
-            Plugin.Log.LogInfo($"Oar: Club baseline was range {attack.m_attackRange:F2}.");
             attack.m_attackStamina = AttackStamina;
             attack.m_attackAdrenaline = AttackAdrenaline;
             attack.m_staggerMultiplier = StaggerMultiplier;

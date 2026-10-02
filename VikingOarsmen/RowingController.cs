@@ -55,7 +55,7 @@ namespace VikingOarsmen
                 if (onBench && !hasOar && inputAllowed
                     && (ZInput.GetButtonDown("Forward") || ZInput.GetButtonDown("Backward")))
                 {
-                    player.Message(MessageHud.MessageType.Center, "Equipe o remo para remar.");
+                    player.Message(MessageHud.MessageType.Center, "Equip the oar to row.");
                 }
 
                 s_desiredGear = RowingGear.Stop;
@@ -280,8 +280,8 @@ namespace VikingOarsmen
         }
 
         /// <summary>
-        /// Seconds between stamina checks for a gear. Slow and Back share one value (D1: "mesmo tanto de
-        /// estamina"); Half and Full check more often, draining faster overall at the same per-check cost.
+        /// Seconds between stamina checks for a gear. Slow and Back share one value, so reverse costs the
+        /// same stamina as gear 1; Half and Full check more often, draining faster overall at the same per-check cost.
         /// </summary>
         private static float GetInterval(RowingGear gear)
         {
