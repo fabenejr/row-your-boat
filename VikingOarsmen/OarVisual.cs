@@ -1,65 +1,21 @@
 using System.Collections.Generic;
+using System.Reflection;
+using HarmonyLib;
 using UnityEngine;
 
 namespace VikingOarsmen
 {
     /// <summary>
-    /// Attached to every Player. Shows the oar and the rowing pose while that player is rowing, on every client.
+    /// Attached to every Player. While that player is rowing, on every client: plays the rowing animation
+    /// (RowerAnimation), moves the oar in their hand to the rowing grip, turns them to face the stern like a
+    /// real rower, and finds the gunwale beside their seat for the gear indicator (GearHud).
     /// </summary>
     /// <remarks>
-    /// The oar is the ship's steering oar, held upright over the gunwale beside the rower like a paddle:
-    /// the blade is pulled from the bow towards the stern through the water (drive), then lifted out and
-    /// swung forward through the air (recovery). The shaft's lean is solved every frame against the water
-    /// under the blade, so the blade stays in the water through waves and rolling, and splashes as it enters.
+    /// The oar itself is the equipped weapon, already in the rower's hand (see OarItem). Only the visual
+    /// model turns: the player's own transform keeps following the seat, as the game expects.
     /// </remarks>
     internal class OarVisual : MonoBehaviour
     {
-        // Duration of one stroke at StrokeSpeed 1 (seconds), and the share of it spent pulling.
-        private const float StrokePeriod = 1.5f;
-        private const float DriveFraction = 0.55f;
-
-        // Seconds a rower takes to fall back in step with the crew's beat after drifting off it.
-        private const float SyncTime = 0.5f;
-
-        // Fore/aft swing of the oar around the fulcrum (degrees), and how far the whole oar travels with it (meters).
-        private const float SweepAngle = 30f;
-        private const float SweepTravel = 0.25f;
-
-        // The stroke is centered this far ahead of the seat (meters).
-        private const float StrokeForward = 0.15f;
-
-        // The shaft leans with its top towards the rower, from nearly upright to nearly flat, BaseTilt being
-        // the lean the oar is fitted for; on the recovery the whole oar also lifts (degrees, meters).
-        private const float MinTilt = 10f;
-        private const float BaseTilt = 35f;
-        private const float MaxTilt = 75f;
-        private const float RecoveryLift = 0.2f;
-
-        // The blade turns flat on the recovery, like real rowers do (degrees).
-        private const float FeatherAngle = 70f;
-
-        // Blade tip depth under the water during the drive, and its clearance above it on the recovery (meters).
-        private const float BladeDepth = 0.35f;
-        private const float BladeClearance = 0.15f;
-
-        // How quickly the blade leaves and re-enters the water at the ends of the recovery
-        // (1 = spread over the whole recovery, 3 = within its first and last tenth).
-        private const float ExtractionRate = 3f;
-
-        // The shaft passes this far outside the gunwale, so it doesn't cut through it, and its fulcrum may
-        // rise at most this far above the gunwale to keep the blade shallow (meters).
-        private const float ShaftGap = 0.08f;
-        private const float MaxRaise = 0.5f;
-
-        // An oar too short to reach the water slides down through the hands, keeping at least this much of
-        // it above the fulcrum to hold (meters).
-        private const float MinHandle = 0.6f;
-
-        // Sea level used when the game can't tell (meters), and Floating.GetWaterLevel's answer below this
-        // means no water volume was found.
-        private const float DefaultSeaLevel = 30f;
-        private const float NoWater = -1000f;
-
         // Heights probed for the gunwale, from above the seat downwards (meters, relative to the seat).
         private const float GunwaleProbeTop = 1.5f;
         private const float GunwaleProbeBottom = -0.5f;
@@ -72,96 +28,114 @@ namespace VikingOarsmen
         // Probe hits in ship space, reused between fits.
         private static readonly List<Vector3> s_hullHits = new List<Vector3>();
 
-        // Fulcrum placement used when no hull collider is found.
+        // Gunwale placement used when no hull collider is found.
         private const float FallbackSideOffset = 0.6f;
         private const float FallbackHeight = 0.6f;
 
-        // Accepted range for the OarScale setting.
-        private const float MinOarScale = 0.2f;
-        private const float MaxOarScale = 3f;
-
-        // How far the rower must move on the ship before the oar is placed again (meters).
+        // How far the rower must move on the ship before the gunwale is found again (meters).
         private const float RelocateDistance = 0.3f;
 
+        // Read by name, so a game update renaming it only leaves the oar in its weapon grip.
+        private static readonly FieldInfo s_rightItemInstanceField = AccessTools.Field(typeof(VisEquipment), "m_rightItemInstance");
+
         private Player _player;
-        private RowerPose _pose;
-        private OarRig _oar;
+        private VisEquipment _visEquipment;
+        private RowerAnimation _animation;
         private Ship _ship;
         private ZDOID _shipId = ZDOID.None;
-        private WaterVolume _waterVolume;
 
-        // Stroke cycle, 0..1 (0 = catch: blade forward, entering the water).
-        private float _phase;
-
-        // Whether the oar is placed, and the rower position (in ship space) it was placed for.
+        // Whether the gunwale was found, and the rower position (in ship space) it was found for.
         private bool _fitted;
         private Vector3 _localRowerPosition;
 
         // Top of the gunwale right beside the seat, in ship space: where the gear indicator sits (see GearHud).
         private Vector3 _localGunwalePoint;
 
-        // Shaft length below the fulcrum once fitted (meters), and its current lean (degrees).
-        private float _bladeLength;
-        private float _tilt = BaseTilt;
+        // The visual model turned to face the stern, so it can be turned back when rowing stops.
+        private Transform _turnedVisual;
 
-        // Whether the blade tip was under the water last frame, once that is known (no splash on the first frame).
-        private bool _bladeWet;
-        private bool _bladeTracked;
+        // The hand-held oar last put in the rowing grip, and for which side, so it is set again only on change.
+        private GameObject _rowingGripInstance;
+        private bool _rowingGripMirrored;
 
         private void Awake()
         {
             _player = GetComponent<Player>();
-            _pose = new RowerPose(_player);
+            _visEquipment = GetComponent<VisEquipment>();
+            _animation = new RowerAnimation(_player);
+        }
+
+        // Before the Animator evaluates this frame.
+        private void Update()
+        {
+            Ship ship = ResolveRowingShip();
+            bool rowing = ship != null;
+            // The authored clips row over the rower's left: facing the stern, that is starboard (+X), the
+            // side FitToShip picks for a centered seat too. Port-side seats use the mirrored clips.
+            bool mirrored = rowing && ship.transform.InverseTransformPoint(transform.position).x < 0f;
+            _animation.Update(rowing, rowing ? RowingController.GetRowingGear(_player) : RowingGear.Stop, mirrored);
+            UpdateGrip(rowing, mirrored);
         }
 
         private void LateUpdate()
         {
-            Ship ship = ResolveRowingShip();
+            Ship ship = _ship;
             if (ship == null)
             {
-                Hide();
+                _fitted = false;
+                FaceForward();
                 return;
             }
 
-            // Build the oar from this ship's steering oar when the player first rows it, and join the crew's
-            // beat and re-fit the oar whenever rowing (re)starts.
-            if (_oar == null || !_oar.Root.activeSelf)
-            {
-                if (_oar == null)
-                {
-                    _oar = OarModel.Create(transform, ship);
-                }
-                _oar.Root.SetActive(true);
-                _phase = GetBeat();
-                _fitted = false;
-                _pose.Reset();
-            }
-
-            // Re-fit when the rower changes seat.
             Vector3 localRower = ship.transform.InverseTransformPoint(transform.position);
             if (!_fitted || (localRower - _localRowerPosition).sqrMagnitude > RelocateDistance * RelocateDistance)
             {
                 FitToShip(ship, localRower);
             }
 
-            AdvancePhase();
-            GetStroke(_phase, out float sweep, out float recovery);
-            PoseOar(sweep, recovery);
-            _pose.Apply(_oar, sweep);
+            FaceStern(ship);
         }
 
         private void OnDestroy()
         {
-            DestroyOar();
+            FaceForward();
+            _animation.Destroy();
         }
 
         /// <summary>
-        /// World position of the gunwale beside the rower's seat, on the side they row over. It moves only
-        /// with the ship, never with the stroke or the rower's pose. False until the oar has been fitted.
+        /// Rowing grip on the oar in the hand while rowing, weapon grip otherwise. VisEquipment rebuilds the
+        /// hand-held instance whenever the equipment changes, so it is checked every frame.
+        /// </summary>
+        private void UpdateGrip(bool rowing, bool mirrored)
+        {
+            GameObject held = s_rightItemInstanceField != null && _visEquipment != null
+                ? s_rightItemInstanceField.GetValue(_visEquipment) as GameObject
+                : null;
+            if (rowing && held != null && OarItem.IsOar(_player.GetCurrentWeapon()))
+            {
+                if (held != _rowingGripInstance || mirrored != _rowingGripMirrored)
+                {
+                    OarItem.SetRowingGrip(held, true, mirrored);
+                    _rowingGripInstance = held;
+                    _rowingGripMirrored = mirrored;
+                }
+                return;
+            }
+
+            if (_rowingGripInstance != null)
+            {
+                OarItem.SetRowingGrip(_rowingGripInstance, false, false);
+            }
+            _rowingGripInstance = null;
+        }
+
+        /// <summary>
+        /// World position of the gunwale beside the rower's seat, on the side they sit on. It moves only
+        /// with the ship. False until it has been found.
         /// </summary>
         internal bool TryGetGunwalePoint(out Vector3 point)
         {
-            if (!_fitted || _ship == null || _oar == null || !_oar.Root.activeSelf)
+            if (!_fitted || _ship == null)
             {
                 point = Vector3.zero;
                 return false;
@@ -189,179 +163,68 @@ namespace VikingOarsmen
                 return null;
             }
 
-            // Only search the scene again when the rowed ship changes; its steering oar may differ too.
+            // Only search the scene again when the rowed ship changes.
             if (shipId != _shipId || _ship == null)
             {
                 _shipId = shipId;
                 GameObject shipObject = ZNetScene.instance != null ? ZNetScene.instance.FindInstance(shipId) : null;
                 _ship = shipObject != null ? shipObject.GetComponent<Ship>() : null;
-                DestroyOar();
+                _fitted = false;
             }
 
             return _ship;
         }
 
         /// <summary>
-        /// Rests the oar on the gunwale beside the rower, at a height where the blade bites the water.
+        /// Finds the gunwale beside the rower, on the side of the hull they sit on (starboard when centered).
         /// </summary>
         private void FitToShip(Ship ship, Vector3 localRower)
         {
             _localRowerPosition = localRower;
-            Transform shipTransform = ship.transform;
-
-            // Row over the side of the hull the rower sits on (starboard when centered): the root's X axis
-            // points outboard. The model is mirrored if its steering oar hangs on port, so the tiller points inboard.
             float side = localRower.x >= 0f ? 1f : -1f;
-            float scale = Mathf.Clamp(Plugin.OarScale.Value, MinOarScale, MaxOarScale);
-            _oar.Root.transform.localScale = new Vector3(side, 1f, 1f);
-            _oar.Size.localScale = new Vector3(_oar.SourceSide * scale, scale, scale);
-            float bladeLength = _oar.BladeLength * scale;
-            float handleLength = _oar.HandleLength * scale;
-
-            // Fulcrum just outside the gunwale, a little ahead of the seat.
-            Vector3 fulcrum;
             bool onGunwale = TryFindGunwale(ship, localRower, side, out float halfWidth, out float gunwaleTop);
-            fulcrum = onGunwale
-                ? new Vector3(side * (halfWidth + ShaftGap), gunwaleTop, localRower.z + StrokeForward)
-                : localRower + new Vector3(side * FallbackSideOffset, FallbackHeight, StrokeForward);
             _localGunwalePoint = onGunwale
                 ? new Vector3(side * halfWidth, gunwaleTop, localRower.z)
                 : localRower + new Vector3(side * FallbackSideOffset, FallbackHeight, 0f);
 
-            // Raise it until the blade only dips BladeDepth into the water mid-drive at the base lean, but keep
-            // it on the gunwale. The lean then follows the water every frame (see PoseOar).
-            float tilt = BaseTilt * Mathf.Deg2Rad;
-            Vector3 bladeTip = fulcrum + new Vector3(side * bladeLength * Mathf.Sin(tilt), -bladeLength * Mathf.Cos(tilt), 0f);
-            float water = WaterHeight(shipTransform, bladeTip);
-            float bite = water - BladeDepth + bladeLength * Mathf.Cos(tilt);
-            fulcrum.y = Mathf.Clamp(bite, fulcrum.y + 0.05f, fulcrum.y + MaxRaise);
-
-            // On a high hull even a nearly upright oar may not reach that deep at the ends of the swing:
-            // slide it down through the hands, as long as enough of it stays above the fulcrum to hold.
-            float reach = bladeLength * Mathf.Cos(MinTilt * Mathf.Deg2Rad) * Mathf.Cos(SweepAngle * Mathf.Deg2Rad);
-            float slide = Mathf.Clamp(fulcrum.y - water + BladeDepth - reach, 0f, Mathf.Max(0f, handleLength - MinHandle));
-            _oar.Size.localPosition = new Vector3(0f, -slide, 0f);
-            _bladeLength = bladeLength + slide;
-            _tilt = BaseTilt;
-
-            // The oar is fixed to the rower rather than the hull: both are carried by the seat, and the
-            // player follows it at physics rate, so this keeps the hands and the oar from drifting apart.
-            // (Remote players have no attach point; their synced transform sits on the seat too.)
-            Transform seat = _player.GetAttachPoint();
-            if (seat == null)
-            {
-                seat = transform;
-            }
-            Quaternion toSeat = Quaternion.Inverse(seat.rotation);
-            _oar.Root.transform.localPosition = toSeat * (shipTransform.TransformPoint(fulcrum) - seat.position);
-            _oar.Root.transform.localRotation = toSeat * shipTransform.rotation;
-
-            PoseOar(0f, 0f);
-            _pose.Fit(_oar, handleLength - slide);
-            _bladeTracked = false;
-
-            Plugin.Log.LogInfo($"Oar on {ship.name}: rower at {localRower:F2}, gunwale {(onGunwale ? $"{halfWidth:F2} wide, top {gunwaleTop:F2}" : "not found")}, " +
-                $"water {water:F2}, fulcrum {fulcrum:F2} (ship space); blade {_bladeLength:F2} m below it, slid {slide:F2} m, lean {_tilt:F0}.");
+            Plugin.Log.LogInfo($"Rower on {ship.name}: at {localRower:F2}, gunwale " +
+                $"{(onGunwale ? $"{halfWidth:F2} wide, top {gunwaleTop:F2}" : "not found")} (ship space).");
             _fitted = true;
         }
 
         /// <summary>
-        /// Advances the stroke cycle frame by frame, while pulling it onto the crew's shared beat.
+        /// Turns the visual model to face the ship's stern, whichever way the bench faces. Done every frame
+        /// because the visual is only ours to turn while rowing; the seat itself never turns on the ship.
         /// </summary>
-        private void AdvancePhase()
+        private void FaceStern(Ship ship)
         {
-            _phase = Mathf.Repeat(_phase + Time.deltaTime * StrokeRate(), 1f);
-
-            // Close the gap to the beat the short way around the cycle, within about SyncTime.
-            float gap = Mathf.Repeat(GetBeat() - _phase + 0.5f, 1f) - 0.5f;
-            _phase = Mathf.Repeat(_phase + gap * Mathf.Clamp01(Time.deltaTime / SyncTime), 1f);
-        }
-
-        /// <summary>
-        /// Point of the stroke cycle everyone aboard should be at: it runs on the network clock, so the whole
-        /// crew rows in time and every client sees the same stroke.
-        /// </summary>
-        private static float GetBeat()
-        {
-            double time = ZNet.instance != null ? ZNet.instance.GetTimeSeconds() : Time.time;
-            double strokes = time * StrokeRate();
-            return (float)(strokes - System.Math.Floor(strokes));
-        }
-
-        /// <summary>
-        /// Strokes per second.
-        /// </summary>
-        private static float StrokeRate()
-        {
-            return Mathf.Max(0f, Plugin.StrokeSpeed.Value) / StrokePeriod;
-        }
-
-        /// <summary>
-        /// Splits the stroke cycle into the oar's fore/aft swing (+1 = catch, blade forward; -1 = finish)
-        /// and how far into the recovery it is (0 while the blade is in the water, 1 mid-recovery).
-        /// </summary>
-        private static void GetStroke(float phase, out float sweep, out float recovery)
-        {
-            // First half of the circle = drive, second half = recovery, warped so they can differ in length.
-            float angle = phase < DriveFraction
-                ? Mathf.PI * (phase / DriveFraction)
-                : Mathf.PI + Mathf.PI * ((phase - DriveFraction) / (1f - DriveFraction));
-
-            sweep = Mathf.Cos(angle);
-            recovery = Mathf.Max(0f, -Mathf.Sin(angle));
-        }
-
-        /// <summary>
-        /// Swings the oar for the current point of the stroke, leaning it so the blade tip is in the water
-        /// on the drive and clear of it on the recovery, measured where the blade is now. This follows the
-        /// waves, the ship rolling and pitching, and the swing raising the blade at both ends of the stroke.
-        /// </summary>
-        private void PoseOar(float sweep, float recovery)
-        {
-            Transform root = _oar.Root.transform;
-            float swingAngle = -SweepAngle * sweep;
-            Quaternion swing = Quaternion.Euler(swingAngle, 0f, 0f);
-
-            // The whole oar travels with the blade, so the lower hand pulls back while the top hand stays put,
-            // and lifts on the recovery.
-            Vector3 offset = new Vector3(0f, RecoveryLift * recovery, SweepTravel * sweep);
-
-            // Water under the blade tip, found with last frame's lean (it changes little from frame to frame).
-            Vector3 tip = root.TransformPoint(offset + swing * Quaternion.Euler(0f, 0f, _tilt) * (Vector3.down * _bladeLength));
-            float water = WaterLevel(tip);
-            float waterHeight = root.InverseTransformPoint(new Vector3(tip.x, water, tip.z)).y;
-
-            // Lean until the tip hangs BladeDepth under the surface on the drive, or BladeClearance over it on
-            // the recovery, leaving and re-entering the water quickly at its ends.
-            float depth = Mathf.Lerp(BladeDepth, -BladeClearance, Mathf.Clamp01(recovery * ExtractionRate));
-            float hang = offset.y - waterHeight + depth;
-            float fullHang = Mathf.Max(_bladeLength * Mathf.Cos(swingAngle * Mathf.Deg2Rad), 0.01f);
-            float cosTilt = Mathf.Clamp(hang / fullHang, Mathf.Cos(MaxTilt * Mathf.Deg2Rad), Mathf.Cos(MinTilt * Mathf.Deg2Rad));
-            _tilt = Mathf.Acos(cosTilt) * Mathf.Rad2Deg;
-
-            // Feather the blade around the shaft (tiller swinging outboard), lean it (top towards the rower,
-            // blade outboard), then swing it fore/aft around the ship's beam.
-            _oar.Stroke.localRotation = swing
-                * Quaternion.Euler(0f, 0f, _tilt)
-                * Quaternion.Euler(0f, -FeatherAngle * recovery, 0f);
-            _oar.Stroke.localPosition = offset;
-
-            TrackSplash(water);
-        }
-
-        /// <summary>
-        /// Splashes where the blade tip breaks the surface on its way in.
-        /// </summary>
-        private void TrackSplash(float water)
-        {
-            Vector3 tip = _oar.ShaftPoint(-_bladeLength);
-            bool wet = tip.y < water;
-            if (wet && !_bladeWet && _bladeTracked)
+            GameObject visual = _player.GetVisual();
+            if (visual == null)
             {
-                OarSplash.Play(new Vector3(tip.x, water, tip.z));
+                return;
             }
-            _bladeWet = wet;
-            _bladeTracked = true;
+
+            Vector3 up = transform.up;
+            Vector3 stern = Vector3.ProjectOnPlane(-ship.transform.forward, up);
+            if (stern.sqrMagnitude < 1e-6f)
+            {
+                return;
+            }
+
+            _turnedVisual = visual.transform;
+            _turnedVisual.rotation = Quaternion.LookRotation(stern, up);
+        }
+
+        /// <summary>
+        /// Gives the visual model back its own facing when rowing stops.
+        /// </summary>
+        private void FaceForward()
+        {
+            if (_turnedVisual != null)
+            {
+                _turnedVisual.localRotation = Quaternion.identity;
+            }
+            _turnedVisual = null;
         }
 
         /// <summary>
@@ -427,44 +290,6 @@ namespace VikingOarsmen
             }
 
             return closest < float.MaxValue;
-        }
-
-        /// <summary>
-        /// Water surface height (in ship space) at a ship-space point.
-        /// </summary>
-        private float WaterHeight(Transform ship, Vector3 local)
-        {
-            Vector3 world = ship.TransformPoint(local);
-            world.y = WaterLevel(world);
-            return ship.InverseTransformPoint(world).y;
-        }
-
-        /// <summary>
-        /// World height of the water surface, waves included, at a world position.
-        /// </summary>
-        private float WaterLevel(Vector3 world)
-        {
-            // Probe at sea level, which is always inside the water volume, however high or low the blade is.
-            float sea = ZoneSystem.instance != null ? ZoneSystem.instance.m_waterLevel : DefaultSeaLevel;
-            float level = Floating.GetWaterLevel(new Vector3(world.x, sea, world.z), ref _waterVolume);
-            return level > NoWater ? level : sea;
-        }
-
-        private void Hide()
-        {
-            if (_oar != null && _oar.Root.activeSelf)
-            {
-                _oar.Root.SetActive(false);
-            }
-        }
-
-        private void DestroyOar()
-        {
-            if (_oar != null)
-            {
-                Destroy(_oar.Root);
-                _oar = null;
-            }
         }
     }
 }

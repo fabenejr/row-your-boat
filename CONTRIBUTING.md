@@ -46,10 +46,11 @@ the decompiled game code, which is the best way to see what a method does before
 | `ShipRowingPatch.cs` | Harmony patches that add the mod's components to ships and players |
 | `RowingController.cs` | Local input (gear shifting, stamina checks) and synced rowing/gear state |
 | `ShipRowing.cs` | Gear-weighted thrust applied by the ship owner |
-| `OarVisual.cs` | Oar placement and stroke animation |
-| `OarModel.cs` | Oar mesh (reused from the Karve, or built procedurally) |
+| `OarVisual.cs` | Per-player rowing visuals: animation, rowing grip, facing the stern, gunwale for the gear indicator |
+| `RowerAnimation.cs` | Plays the rowing clips over the game's Animator (Playables), in step with the crew |
+| `ModAssets.cs` | Loads the embedded AssetBundle (oar model, rowing clips) |
+| `OarSwing.cs` | Slower swing animation when attacking with the oar |
 | `OarSplash.cs` | Splash and sound when the blade hits the water (reused from arrows) |
-| `RowerPose.cs` | Rowing pose: hands on the oar and torso motion |
 | `package/` | Thunderstore manifest and icon |
 | `scripts/release.ps1` | Release packaging (see [RELEASING.md](RELEASING.md)) |
 

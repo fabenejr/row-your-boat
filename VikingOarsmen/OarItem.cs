@@ -1,6 +1,3 @@
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using Jotunn.Configs;
 using Jotunn.Entities;
 using Jotunn.Managers;
@@ -33,9 +30,6 @@ namespace VikingOarsmen
         // Animator speed while swinging the oar (see OarSwing).
         internal const float SwingSpeed = 1f / AttackDurationMultiplier;
 
-        // Embedded resource built in Unity (see art/oar and VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md).
-        private const string BundleName = "vikingoarsmen";
-
         // Vanilla two-handed weapon whose hold pose and swing animations the oar borrows.
         private const string SwingSource = "Battleaxe";
 
@@ -46,6 +40,46 @@ namespace VikingOarsmen
         // Slides the oar along its shaft when sheathed on the back, so the blade doesn't go through the
         // ground (tuned live with UnityExplorer).
         private const float BackOffsetZ = -0.8708f;
+
+        // While rowing the oar is held near the end of its handle and turned a quarter around its shaft, so
+        // the blade cuts the water edge-on. Measured from the rowing animation's rig in Blender.
+        private const float RowingGripZ = -0.08f;
+        private const float RowingGripRoll = -90f;
+
+        // Rowing on the other side (mirrored clips) the right hand takes the left hand's place on the shaft,
+        // mirrored, so the oar sits in it differently. Computed in Blender from the same rig.
+        private static readonly Vector3 s_mirroredGripPosition = new Vector3(-0.0782f, 0.0071f, 0.2411f);
+        private static readonly Quaternion s_mirroredGripRotation = new Quaternion(0.73589f, 0.65545f, 0.11039f, 0.12911f);
+
+        /// <summary>
+        /// Switches the oar held in a hand (VisEquipment's instance of the item's "attach") between the
+        /// weapon grip and the rowing grip. Only the model moves: the rowing clips carry the hands.
+        /// </summary>
+        /// <param name="mirrored">Rowing with the mirrored clips (see ModAssets.RowIdle).</param>
+        internal static void SetRowingGrip(GameObject handInstance, bool rowing, bool mirrored)
+        {
+            Transform model = handInstance != null ? handInstance.transform.Find("model") : null;
+            if (model == null)
+            {
+                return;
+            }
+
+            if (!rowing)
+            {
+                model.localPosition = new Vector3(0f, 0f, HandOffsetZ);
+                model.localRotation = Quaternion.identity;
+            }
+            else if (mirrored)
+            {
+                model.localPosition = s_mirroredGripPosition;
+                model.localRotation = s_mirroredGripRotation;
+            }
+            else
+            {
+                model.localPosition = new Vector3(0f, 0f, RowingGripZ);
+                model.localRotation = Quaternion.Euler(0f, 0f, RowingGripRoll);
+            }
+        }
 
         internal static bool IsOar(ItemDrop.ItemData item)
         {
@@ -155,7 +189,7 @@ namespace VikingOarsmen
         /// </summary>
         private static void ApplyOarVisual(GameObject itemPrefab)
         {
-            Transform source = LoadBundlePrefab();
+            Transform source = ModAssets.OarPrefab != null ? ModAssets.OarPrefab.transform : null;
             Transform sourceAttach = source != null ? source.Find("attach") : null;
             Transform attach = itemPrefab.transform.Find("attach");
             Transform model = attach != null ? attach.Find("model") : null;
@@ -233,38 +267,6 @@ namespace VikingOarsmen
             Transform backModel = Object.Instantiate(model, attachBack.transform, false);
             backModel.name = model.name;
             backModel.localPosition = new Vector3(0f, 0f, BackOffsetZ);
-        }
-
-        private static Transform LoadBundlePrefab()
-        {
-            // Not Jötunn's LoadAssetBundleFromResources: it disposes the resource stream right after
-            // LoadFromStream, and Unity 6 still reads from it on LoadAsset (fails, and the game hangs
-            // on the loading screen). LoadFromMemory owns its own copy of the bytes.
-            Assembly assembly = typeof(OarItem).Assembly;
-            string resource = assembly.GetManifestResourceNames().FirstOrDefault(name => name.EndsWith(BundleName));
-            if (resource == null)
-            {
-                Plugin.Log.LogError($"Oar item: embedded AssetBundle '{BundleName}' not found in the DLL.");
-                return null;
-            }
-
-            byte[] bytes;
-            using (Stream stream = assembly.GetManifestResourceStream(resource))
-            using (MemoryStream memory = new MemoryStream())
-            {
-                stream.CopyTo(memory);
-                bytes = memory.ToArray();
-            }
-
-            AssetBundle bundle = AssetBundle.LoadFromMemory(bytes);
-            if (bundle == null)
-            {
-                Plugin.Log.LogError($"Oar item: failed to load the AssetBundle '{BundleName}' (built for another platform or Unity version?).");
-                return null;
-            }
-
-            GameObject prefab = bundle.LoadAsset<GameObject>(PrefabName);
-            return prefab != null ? prefab.transform : null;
         }
     }
 }

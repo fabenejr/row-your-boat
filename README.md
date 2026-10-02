@@ -69,8 +69,7 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 | Gameplay | `StaminaDrainIntervalSlow` | `2` | Seconds between strokes in gear 1 and reverse |
 | Gameplay | `StaminaDrainIntervalHalf` | `1.5` | Seconds between strokes in gear 2 |
 | Gameplay | `StaminaDrainIntervalFull` | `1` | Seconds between strokes in gear 3 |
-| Visual | `StrokeSpeed` | `1.0` | Speed of the oar stroke (1.0 = one stroke every 1.5 seconds) |
-| Visual | `OarScale` | `0.8` | Size of the oar compared to the ship's steering oar (1.0 = same size) |
+| Visual | `StrokeSpeed` | `1.0` | Speed of the rowing animation in every gear (1.0 = the animation's own pace in Half gear) |
 | Visual | `Splash` | `true` | Splash and play a sound when the blade hits the water |
 
 ## Multiplayer

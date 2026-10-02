@@ -37,7 +37,6 @@ namespace VikingOarsmen
         internal static ConfigEntry<float> StaminaDrainIntervalHalf;
         internal static ConfigEntry<float> StaminaDrainIntervalFull;
         internal static ConfigEntry<float> StrokeSpeed;
-        internal static ConfigEntry<float> OarScale;
         internal static ConfigEntry<bool> Splash;
 
         // Harmony instance that owns all patches applied by this mod.
@@ -70,9 +69,7 @@ namespace VikingOarsmen
             StaminaDrainIntervalFull = Config.Bind("Gameplay", "StaminaDrainIntervalFull", 1.0f,
                 "Seconds between strokes in Full gear (3).");
             StrokeSpeed = Config.Bind("Visual", "StrokeSpeed", 1.0f,
-                "Speed of the oar stroke animation. 1.0 = one stroke every 1.5 seconds.");
-            OarScale = Config.Bind("Visual", "OarScale", 0.8f,
-                "Size of the oar compared to the ship's steering oar it is copied from (1.0 = same size). Applied when rowing starts.");
+                "Speed of the rowing animation in every gear. 1.0 = the animation's own pace in Half gear (2); Slow and reverse are slower, Full faster.");
             Splash = Config.Bind("Visual", "Splash", true,
                 "Splash and play a sound when the oar blade hits the water.");
 
