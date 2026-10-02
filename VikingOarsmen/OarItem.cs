@@ -1,3 +1,6 @@
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using Jotunn.Configs;
 using Jotunn.Entities;
 using Jotunn.Managers;
@@ -8,8 +11,8 @@ namespace VikingOarsmen
     /// <summary>
     /// Registers the rower's oar: a weapon cloned from the Club, craftable at a tier-1 workbench, that
     /// will gate rowing once equipped (see VikingOarsmen-Documents/Plano-Marchas-e-Remo.md, items D5/D6
-    /// for why stats mostly follow the Club as-is). The visual is the same steering-oar mesh OarModel
-    /// already copies for the stroke animation, applied once to this item's prefab instead of per-rower.
+    /// for why stats mostly follow the Club as-is). The visual is our own oar model, loaded from the
+    /// AssetBundle embedded in this DLL.
     /// </summary>
     internal static class OarItem
     {
@@ -27,8 +30,8 @@ namespace VikingOarsmen
         private const float RangeMultiplier = 2f;
         private const float AttackDurationMultiplier = 3f;
 
-        // Ship whose steering oar is copied onto the item's mesh (same source OarModel prefers).
-        private const string VisualSourceShip = "Karve";
+        // Embedded resource built in Unity (see art/oar and VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md).
+        private const string BundleName = "vikingoarsmen";
 
         internal static void Setup()
         {
@@ -93,30 +96,97 @@ namespace VikingOarsmen
         }
 
         /// <summary>
-        /// Replaces the Club's mesh with a copy of a ship's steering-oar mesh, once, on the item prefab
-        /// itself (not per-rower/per-frame like the live stroke animation in OarModel). Temporary asset,
-        /// per the backlog: a dedicated oar model is tracked separately.
+        /// Puts our oar model (from the embedded AssetBundle) into the cloned Club, keeping the Club's own
+        /// hierarchy (attach/model, attach/collider, attach/equiped/trail, UpgraderGlow) so everything the
+        /// game wires to those names keeps working. Only the mesh, material, collider and trail change.
         /// </summary>
         private static void ApplyOarVisual(GameObject itemPrefab)
         {
-            GameObject shipPrefab = ZNetScene.instance != null ? ZNetScene.instance.GetPrefab(VisualSourceShip) : null;
-            Ship ship = shipPrefab != null ? shipPrefab.GetComponent<Ship>() : null;
-            Transform rudder = ship != null && ship.m_rudderObject != null ? ship.m_rudderObject.transform : null;
-            MeshFilter source = rudder != null ? OarModel.FindLongestMesh(rudder) : null;
-            MeshFilter target = OarModel.FindLongestMesh(itemPrefab.transform);
-            if (source == null || target == null)
+            Transform source = LoadBundlePrefab();
+            Transform sourceAttach = source != null ? source.Find("attach") : null;
+            Transform attach = itemPrefab.transform.Find("attach");
+            Transform model = attach != null ? attach.Find("model") : null;
+            if (sourceAttach == null || model == null)
             {
-                Plugin.Log.LogWarning("Oar item: no steering-oar mesh found to reuse; keeping the Club's own mesh.");
+                Plugin.Log.LogWarning("Oar item: bundle prefab or the Club's attach/model not found; keeping the Club's own mesh.");
                 return;
             }
 
-            target.sharedMesh = source.sharedMesh;
-            MeshRenderer targetRenderer = target.GetComponent<MeshRenderer>();
-            MeshRenderer sourceRenderer = source.GetComponent<MeshRenderer>();
-            if (targetRenderer != null && sourceRenderer != null)
+            Mesh mesh = sourceAttach.GetComponent<MeshFilter>().sharedMesh;
+            MeshRenderer renderer = model.GetComponent<MeshRenderer>();
+            // Our material only carries the texture: the bundle's shader is compiled for the build
+            // platform's graphics API only, while the Club's shader is the game's own, lit like every
+            // other item, and valid on any platform.
+            Material material = new Material(sourceAttach.GetComponent<MeshRenderer>().sharedMaterial)
             {
-                targetRenderer.sharedMaterials = sourceRenderer.sharedMaterials;
+                shader = renderer.sharedMaterial.shader,
+            };
+            model.GetComponent<MeshFilter>().sharedMesh = mesh;
+            renderer.sharedMaterials = new[] { material };
+            // Our mesh's origin is already the grip, unlike the Club's model, which sits offset from attach.
+            model.localPosition = Vector3.zero;
+            model.localRotation = Quaternion.identity;
+
+            BoxCollider collider = attach.GetComponentInChildren<BoxCollider>(true);
+            if (collider != null)
+            {
+                collider.transform.localPosition = Vector3.zero;
+                collider.center = mesh.bounds.center;
+                collider.size = mesh.bounds.size;
             }
+
+            // Reference points for the rowing code (grip_top, grip_bottom, fulcrum, blade_tip).
+            foreach (Transform point in sourceAttach)
+            {
+                Transform copy = new GameObject(point.name).transform;
+                copy.SetParent(attach, false);
+                copy.localPosition = point.localPosition;
+                copy.localRotation = point.localRotation;
+            }
+
+            // Swing trail along the outer part of the oar, the part that actually hits.
+            Transform trail = attach.Find("equiped/trail");
+            Transform trailBase = trail != null ? trail.Find("base") : null;
+            Transform trailTip = trail != null ? trail.Find("tip") : null;
+            if (trailBase != null && trailTip != null)
+            {
+                trailBase.localPosition = sourceAttach.Find("fulcrum").localPosition;
+                trailTip.localPosition = sourceAttach.Find("blade_tip").localPosition;
+            }
+
+            Plugin.Log.LogInfo($"Oar item: model '{mesh.name}' ({mesh.bounds.size.z:F2} m) from the bundle, shader '{material.shader.name}'.");
+        }
+
+        private static Transform LoadBundlePrefab()
+        {
+            // Not Jötunn's LoadAssetBundleFromResources: it disposes the resource stream right after
+            // LoadFromStream, and Unity 6 still reads from it on LoadAsset (fails, and the game hangs
+            // on the loading screen). LoadFromMemory owns its own copy of the bytes.
+            Assembly assembly = typeof(OarItem).Assembly;
+            string resource = assembly.GetManifestResourceNames().FirstOrDefault(name => name.EndsWith(BundleName));
+            if (resource == null)
+            {
+                Plugin.Log.LogError($"Oar item: embedded AssetBundle '{BundleName}' not found in the DLL.");
+                return null;
+            }
+
+            byte[] bytes;
+            using (Stream stream = assembly.GetManifestResourceStream(resource))
+            using (MemoryStream memory = new MemoryStream())
+            {
+                stream.CopyTo(memory);
+                bytes = memory.ToArray();
+            }
+
+            AssetBundle bundle = AssetBundle.LoadFromMemory(bytes);
+            if (bundle == null)
+            {
+                Plugin.Log.LogError($"Oar item: failed to load the AssetBundle '{BundleName}' (built for another platform or Unity version?).");
+                return null;
+            }
+
+            GameObject prefab = bundle.LoadAsset<GameObject>(PrefabName);
+            return prefab != null ? prefab.transform : null;
         }
     }
 }

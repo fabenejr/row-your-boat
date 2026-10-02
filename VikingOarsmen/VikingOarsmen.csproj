@@ -37,6 +37,11 @@
     <PackageReference Include="JotunnLib" Version="2.30.2" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- Oar model built in Unity, shipped inside the DLL and loaded with Jötunn's AssetUtils. -->
+  <ItemGroup>
+    <EmbeddedResource Include="AssetBundles\vikingoarsmen" LogicalName="VikingOarsmen.AssetBundles.vikingoarsmen" />
+  </ItemGroup>
+
   <!-- Private=false: game assemblies are compile-time only and must not be copied to bin. -->
   <ItemGroup>
     <Reference Include="BepInEx">

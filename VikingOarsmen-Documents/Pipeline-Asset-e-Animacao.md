@@ -135,7 +135,7 @@
 
 ## Decisões em aberto (para levar ao [[Steering]] quando fechar)
 
-- Bundle **embutido na DLL** vs arquivo separado (recomendação: embutido).
+- ~~Bundle **embutido na DLL** vs arquivo separado~~ → embutido ([[Steering]] item 8).
 - Técnica de animação: **override controller** vs **Playables** (recomendação: decidir depois do passo 2, olhando a estrutura real do Animator do player no UnityExplorer).
 - IK das mãos: manter o **manual** do `RowerPose` vs migrar para o **IK nativo** do Unity.
-- Material: **mock do Jötunn** vs **shader do Club aplicado em runtime**.
+- ~~Material: **mock do Jötunn** vs **shader do Club aplicado em runtime**~~ → shader do Club ([[Steering]] item 8).
