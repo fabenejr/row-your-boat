@@ -57,6 +57,26 @@ namespace VikingOarsmen
         }
 
         /// <summary>
+        /// Slows the oar's swing animation (see OarSwing).
+        /// </summary>
+        [HarmonyPatch(typeof(CharacterAnimEvent), nameof(CharacterAnimEvent.CustomFixedUpdate))]
+        [HarmonyPostfix]
+        private static void CharacterAnimEvent_CustomFixedUpdate_Postfix(CharacterAnimEvent __instance)
+        {
+            OarSwing.OnFixedUpdate(__instance);
+        }
+
+        /// <summary>
+        /// Keeps the oar's swing slowed when an animation event changes the speed mid-attack (see OarSwing).
+        /// </summary>
+        [HarmonyPatch(typeof(CharacterAnimEvent), nameof(CharacterAnimEvent.Speed))]
+        [HarmonyPostfix]
+        private static void CharacterAnimEvent_Speed_Postfix(CharacterAnimEvent __instance)
+        {
+            OarSwing.OnSpeedSet(__instance);
+        }
+
+        /// <summary>
         /// Stops movement input from standing the rower up while rowing. Vanilla auto-detaches any
         /// seated player on movement input unless they're a doodad controller (like the helm) — rowers
         /// aren't one (see RowingController.IsRowingMode), so without this W/S would stand them up

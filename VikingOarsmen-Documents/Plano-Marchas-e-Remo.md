@@ -51,13 +51,13 @@ O leme é acionado via `IDoodadController`/`Player.m_doodadController`, que só 
 | Stamina = 12 | `Attack.m_attackStamina` (default 20) | direto |
 | Adrenaline = 1 | `Attack.m_attackAdrenaline` (default 1) | já bate com o default — só deixar explícito |
 | Hitbox 2x mais range | `Attack.m_attackRange` (default 1.5 na classe base) | **precisa do valor real do Club**, não do default genérico da classe — ver nota abaixo |
-| Attack speed 3x mais longo | `Attack.m_speedFactor` (default 0.2 na classe base) | **sentido do multiplicador não confirmado** — ver nota abaixo |
-| Type = club | `SharedData.m_itemType` + `SharedData.m_skillType` | **[D5]** iguais ao Club original (não altera) |
+| Attack speed 3x mais longo | `Animator.speed` durante o ataque (não `Attack.m_speedFactor`) | `OarSwing`; ajustado para **1.75x** após teste (3x ficou lento demais) — ver nota abaixo |
+| Type = club | `SharedData.m_itemType` + `SharedData.m_skillType` | **[D5]** skill igual ao Club (Clubs); tipo virou arma de duas mãos com pose/golpes do Battleaxe (revisão de 2026-10-01) |
 | Stagger | `SharedData.m_staggerMultiplier` | **[D6]** `1.5f` (o "15" do backlog era o multiplicador 1.5, não um valor absoluto) |
 
 **Duas notas importantes que não dá pra resolver só lendo o código genérico da classe `Attack`** (os defaults ali são da classe base, não do prefab `Club` específico, que tem seus próprios valores customizados nos dados do item):
 - `m_attackRange` e `m_speedFactor` do **Club de verdade** só são conhecidos lendo o prefab clonado em tempo de execução (quando o Jötunn/ObjectDB já carregou os itens vanilla). O plano é: no primeiro boot, clonar o Club, **logar os valores reais** (`Plugin.Log.LogInfo`) do Club original antes de qualquer alteração, e só então aplicar os multiplicadores (×2 no range, e o fator de ×3 na duração do golpe) sobre o valor real — nunca sobre o default genérico da tabela acima.
-- Não decompilei a direção exata de `m_speedFactor` (se maior = ataque mais rápido ou mais lento). Vou confirmar isso empiricamente comparando o valor do Club com sua duração de ataque conhecida (que já é familiar de jogar) antes de aplicar a fórmula — detalhe de implementação, não bloqueia o planejamento.
+- ~~Não decompilei a direção exata de `m_speedFactor`~~ **Resolvido 2026-10-01 (ILSpy):** `Attack.m_speedFactor` é a velocidade de **movimento** do personagem durante o ataque (`Humanoid.GetAttackSpeedFactorMovement`), não a do golpe. A velocidade do golpe é o `Animator.speed`, que o jogo define via evento de animação (`CharacterAnimEvent.Speed`) e volta a 1 fora de ataque (`CharacterAnimEvent.CustomFixedUpdate`). O "3x mais longo" virou `OarSwing`: postfix nesses dois métodos que multiplica o `Animator.speed` por 1/1.75 durante ataques com o remo (3x testado em jogo em 2026-10-01 e achado lento demais), só no dono (o `ZSyncAnimation` já sincroniza o `Animator.speed` com os outros clientes). O `m_speedFactor` voltou ao valor do Club.
 
 ### 1.3 Bug encontrado em teste: W/S levantava o remador do banco
 
@@ -157,7 +157,11 @@ target = clamp(-MaxRowingPower, MaxRowingPower, Σ peso(marcha do remador))
 Confirmado: ambos removidos do `Plugin.cs`. Ativação passa a ser 100% automática (sentado + remo equipado). Bump de versão `MAJOR` necessário (`RELEASING.md`).
 
 ### [Decidido] D5 — "Type = club"
-Clonar o Club mantendo `m_itemType` e `m_skillType` **iguais ao original**. Regra geral pra qualquer outra dúvida de campo que surgir durante a implementação: **seguir igual ao Club por padrão**, e só desviar depois, se algo se mostrar errado em teste — não travar a implementação tentando adivinhar antes da hora.
+Clonar o Club mantendo `m_itemType` e `m_skillType` **iguais ao original**.
+
+**Revisão 2026-10-01:** o remo passou a ser **arma de duas mãos** (`m_itemType = TwoHandedWeapon`). Pose (`m_animationState`) e golpes (animação, combo e formato do acerto do `m_attack`/`m_secondaryAttack`) vêm do **Battleaxe**: golpes largos na horizontal, como varrer com o remo. Dano, estamina, alcance e skill (`Clubs`) continuam os do Club. Duas mãos ainda ocupam `m_rightItem`, então a checagem de remo equipado via `GetCurrentWeapon()` não muda (verificado no ILSpy, `Humanoid.EquipItem`/`GetCurrentWeapon`).
+
+Regra geral pra qualquer outra dúvida de campo que surgir durante a implementação: **seguir igual ao Club por padrão**, e só desviar depois, se algo se mostrar errado em teste — não travar a implementação tentando adivinhar antes da hora.
 
 ### [Decidido] D6 — "Stagger"
 O "15" do backlog era, na real, o multiplicador **1.5** (não um valor absoluto de 15). `SharedData.m_staggerMultiplier = 1.5f`.

@@ -185,8 +185,7 @@ namespace VikingOarsmen
         /// </summary>
         private static bool HasOarEquipped(Player player)
         {
-            ItemDrop.ItemData weapon = player.GetCurrentWeapon();
-            return weapon != null && weapon.m_dropPrefab != null && weapon.m_dropPrefab.name == OarItem.PrefabName;
+            return OarItem.IsOar(player.GetCurrentWeapon());
         }
 
         /// <summary>

@@ -28,10 +28,29 @@ namespace VikingOarsmen
         private const float AttackStamina = 12f;
         private const float AttackAdrenaline = 1f;
         private const float RangeMultiplier = 2f;
-        private const float AttackDurationMultiplier = 3f;
+        private const float AttackDurationMultiplier = 1.75f;
+
+        // Animator speed while swinging the oar (see OarSwing).
+        internal const float SwingSpeed = 1f / AttackDurationMultiplier;
 
         // Embedded resource built in Unity (see art/oar and VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md).
         private const string BundleName = "vikingoarsmen";
+
+        // Vanilla two-handed weapon whose hold pose and swing animations the oar borrows.
+        private const string SwingSource = "Battleaxe";
+
+        // Slides the oar along its shaft in the hand, so the grip falls nearer the middle of the oar
+        // (tuned live with UnityExplorer).
+        private const float HandOffsetZ = -0.4f;
+
+        // Slides the oar along its shaft when sheathed on the back, so the blade doesn't go through the
+        // ground (tuned live with UnityExplorer).
+        private const float BackOffsetZ = -0.8708f;
+
+        internal static bool IsOar(ItemDrop.ItemData item)
+        {
+            return item != null && item.m_dropPrefab != null && item.m_dropPrefab.name == PrefabName;
+        }
 
         internal static void Setup()
         {
@@ -63,16 +82,14 @@ namespace VikingOarsmen
             shared.m_maxDurability = Durability;
             shared.m_attackForce = Knockback;
             shared.m_backstabBonus = BackstabBonus;
+            MakeTwoHanded(shared);
 
             Attack attack = shared.m_attack;
-            Plugin.Log.LogInfo($"Oar: Club baseline was range {attack.m_attackRange:F2}, speedFactor {attack.m_speedFactor:F2}.");
+            Plugin.Log.LogInfo($"Oar: Club baseline was range {attack.m_attackRange:F2}.");
             attack.m_attackStamina = AttackStamina;
             attack.m_attackAdrenaline = AttackAdrenaline;
             attack.m_staggerMultiplier = StaggerMultiplier;
             attack.m_attackRange *= RangeMultiplier;
-            // Higher m_speedFactor plays the swing faster in the Club's own data, so dividing it slows
-            // the attack down to the requested "3x longer". Flip to a multiply if testing shows otherwise.
-            attack.m_speedFactor /= AttackDurationMultiplier;
 
             ApplyOarVisual(oar.ItemPrefab);
 
@@ -91,8 +108,44 @@ namespace VikingOarsmen
                 return;
             }
 
-            Plugin.Log.LogInfo($"Oar item registered: range {attack.m_attackRange:F2}, speedFactor {attack.m_speedFactor:F2}, " +
+            Plugin.Log.LogInfo($"Oar item registered: range {attack.m_attackRange:F2}, swing speed x{SwingSpeed:F2}, " +
                 $"durability {shared.m_maxDurability:F0}, knockback {shared.m_attackForce:F0}.");
+        }
+
+        /// <summary>
+        /// Two-handed weapon with the Battleaxe's hold pose and swings (wide horizontal sweeps). Only the
+        /// fields tied to the animation and the hit shape are borrowed; damage, stamina, range and skill
+        /// (Clubs) stay the Club's. Two-handed items still go in the right hand, so the rowing check via
+        /// GetCurrentWeapon is unaffected.
+        /// </summary>
+        private static void MakeTwoHanded(ItemDrop.ItemData.SharedData shared)
+        {
+            GameObject battleaxe = PrefabManager.Instance.GetPrefab(SwingSource);
+            ItemDrop source = battleaxe != null ? battleaxe.GetComponent<ItemDrop>() : null;
+            if (source == null)
+            {
+                Plugin.Log.LogWarning($"Oar item: '{SwingSource}' not found; keeping the Club's one-handed swings.");
+                return;
+            }
+
+            ItemDrop.ItemData.SharedData sourceShared = source.m_itemData.m_shared;
+            shared.m_itemType = ItemDrop.ItemData.ItemType.TwoHandedWeapon;
+            shared.m_animationState = sourceShared.m_animationState;
+            CopySwing(sourceShared.m_attack, shared.m_attack);
+            CopySwing(sourceShared.m_secondaryAttack, shared.m_secondaryAttack);
+        }
+
+        private static void CopySwing(Attack source, Attack target)
+        {
+            target.m_attackType = source.m_attackType;
+            target.m_attackAnimation = source.m_attackAnimation;
+            target.m_attackRandomAnimations = source.m_attackRandomAnimations;
+            target.m_attackChainLevels = source.m_attackChainLevels;
+            target.m_attackOriginJoint = source.m_attackOriginJoint;
+            target.m_attackAngle = source.m_attackAngle;
+            target.m_attackRayWidth = source.m_attackRayWidth;
+            target.m_attackHeight = source.m_attackHeight;
+            target.m_attackOffset = source.m_attackOffset;
         }
 
         /// <summary>
@@ -123,14 +176,17 @@ namespace VikingOarsmen
             };
             model.GetComponent<MeshFilter>().sharedMesh = mesh;
             renderer.sharedMaterials = new[] { material };
-            // Our mesh's origin is already the grip, unlike the Club's model, which sits offset from attach.
-            model.localPosition = Vector3.zero;
+            // Our mesh's origin is the top of the shaft; the hand holds it HandOffsetZ further down. Every
+            // point under attach shifts with it so they stay on the same spots of the oar.
+            Vector3 handOffset = new Vector3(0f, 0f, HandOffsetZ);
+            model.localPosition = handOffset;
             model.localRotation = Quaternion.identity;
+            AddBackAttach(itemPrefab.transform, attach, model);
 
             BoxCollider collider = attach.GetComponentInChildren<BoxCollider>(true);
             if (collider != null)
             {
-                collider.transform.localPosition = Vector3.zero;
+                collider.transform.localPosition = handOffset;
                 collider.center = mesh.bounds.center;
                 collider.size = mesh.bounds.size;
             }
@@ -140,7 +196,7 @@ namespace VikingOarsmen
             {
                 Transform copy = new GameObject(point.name).transform;
                 copy.SetParent(attach, false);
-                copy.localPosition = point.localPosition;
+                copy.localPosition = point.localPosition + handOffset;
                 copy.localRotation = point.localRotation;
             }
 
@@ -150,11 +206,33 @@ namespace VikingOarsmen
             Transform trailTip = trail != null ? trail.Find("tip") : null;
             if (trailBase != null && trailTip != null)
             {
-                trailBase.localPosition = sourceAttach.Find("fulcrum").localPosition;
-                trailTip.localPosition = sourceAttach.Find("blade_tip").localPosition;
+                trailBase.localPosition = sourceAttach.Find("fulcrum").localPosition + handOffset;
+                trailTip.localPosition = sourceAttach.Find("blade_tip").localPosition + handOffset;
             }
 
             Plugin.Log.LogInfo($"Oar item: model '{mesh.name}' ({mesh.bounds.size.z:F2} m) from the bundle, shader '{material.shader.name}'.");
+        }
+
+        /// <summary>
+        /// Sheathed on the back, VisEquipment uses an "attach_back" child if the prefab has one (else the
+        /// hand's "attach") and zeroes its local position on the back joint, so the offset that keeps the
+        /// long oar off the ground has to live on the model inside it.
+        /// </summary>
+        private static void AddBackAttach(Transform itemRoot, Transform attach, Transform model)
+        {
+            GameObject attachBack = new GameObject("attach_back");
+            // Inactive like any attach in the prefab: VisEquipment activates its own instance, and an
+            // active one here would render a second oar on the dropped item.
+            attachBack.SetActive(false);
+            attachBack.transform.SetParent(itemRoot, false);
+            attachBack.transform.localPosition = attach.localPosition;
+            attachBack.transform.localRotation = attach.localRotation;
+            // VisEquipment takes the first child named attach_back or attach, so ours must come first.
+            attachBack.transform.SetSiblingIndex(attach.GetSiblingIndex());
+
+            Transform backModel = Object.Instantiate(model, attachBack.transform, false);
+            backModel.name = model.name;
+            backModel.localPosition = new Vector3(0f, 0f, BackOffsetZ);
         }
 
         private static Transform LoadBundlePrefab()
