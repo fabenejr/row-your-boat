@@ -51,6 +51,10 @@ the decompiled game code, which is the best way to see what a method does before
 | `ModAssets.cs` | Loads the embedded AssetBundle (oar model, rowing clips) |
 | `OarSwing.cs` | Slower swing animation when attacking with the oar |
 | `OarSplash.cs` | Splash and sound when the blade hits the water (reused from arrows) |
+| `GearHud.cs` | The rower's gear indicator, cloned from the vanilla ship HUD |
+| `VikingOarsmen/AssetBundles/` | The AssetBundle (oar model, rowing clips) built in Unity and embedded in the DLL |
+| `art/oar/` | Blender sources of the oar model and animation rig, plus the script that builds them |
+| `VikingOarsmen-Documents/` | Design notes (Obsidian vault): plan, steering decisions and the asset pipeline |
 | `package/` | Thunderstore manifest and icon |
 | `scripts/release.ps1` | Release packaging (see [RELEASING.md](RELEASING.md)) |
 

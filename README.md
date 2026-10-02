@@ -10,13 +10,10 @@ W/S shift gears just like the helm's rudder, and the more of the crew rows, the 
 - **Gear shifting:** sitting on a bench with the oar equipped puts you in neutral automatically. W/S step through reverse, neutral and gears 1–3, exactly like steering a ship, except it never turns.
 - **Crew-powered speed:** each rower adds thrust based on their gear (reverse and gears 1–3), so four rowers in gear 1 match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
 - **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
-- **Animated oar:** the oar is the ship's own steering oar, held over the gunwale beside you like a paddle. The blade digs in ahead of you, pulls back through the water, then lifts out, turns flat and swings forward again. It appears only while rowing and disappears as soon as you get up.
-- **Blade in the water:** the lean of the oar is adjusted every frame to the water under the blade, so it stays in the water through the whole pull, over waves and while the ship rolls, and clears it on the way back. On a high hull, the oar slides down through your hands to reach the water.
+- **Rowing animation:** the oar is a custom model held in both hands, and the rower sits facing the stern. The stroke is a real animation: the blade enters the water at the catch, the body pulls back through the drive, then the oar lifts out and swings forward. Stroke pace follows the gear, and `StrokeSpeed` scales it. The oar returns to a normal weapon grip when you get up.
 - **Splash:** the blade splashes, with sound, as it hits the water, using the game's own arrow-in-water effect.
 - **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
-- **Rowing pose:** your character holds the oar with both hands, the arms follow it through the stroke, and the torso reaches forward at the catch, pulls back through the drive and leans towards the oar.
-- **Fits every ship:** the oar rests on the actual gunwale on the side you sit on, at a height that suits the hull and the water level.
-- **Uses the game's own art:** ships without a steering oar borrow the Karve's, so no extra asset files are needed. If none can be found, a simple oar built in code is used instead.
+- **Gear indicator:** the selected gear is shown with the helm's own arrows on the gunwale beside your bench.
 - **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
 
@@ -83,7 +80,7 @@ thrust, and every client draws the oars.
 
 ## Building from source
 
-Prerequisites: Visual Studio 2022+ with **.NET desktop development**, or the .NET SDK, plus Valheim with BepInExPack installed.
+Prerequisites: Visual Studio 2022+ with **.NET desktop development**, or the .NET SDK, plus Valheim with BepInExPack and Jötunn installed.
 
 1. Clone the repository.
 2. Copy `Local.props.example` to `Local.props` and set `ValheimDir` to your Valheim folder.

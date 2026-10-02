@@ -12,39 +12,39 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 - The mod now depends on [Jötunn](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/). Install it
   alongside BepInExPack Valheim.
-- A craftable oar (tier-1 workbench, 6 Fine Wood), based on the Club. Equipping it is now required to row,
-  and it works as a real weapon when you're not on a ship.
+- A craftable oar (tier-1 workbench, 6 Fine Wood), based on the Club, with its own model. Equipping it is now
+  required to row, and it works as a slow two-handed weapon when you're not on a ship.
 - Gear shifting: with the oar equipped and seated, rowing starts automatically in neutral; W/S step through
   reverse, neutral and gears 1–3 exactly like the ship's own rudder (minus steering). Each gear has its own
   thrust (`Gear2Multiplier`, `Gear3Multiplier`, `ReverseMultiplier`) and stamina cadence
   (`StaminaDrainIntervalSlow/Half/Full`).
+- A real rowing animation on the rower, seated and facing the stern, with the oar in both hands. The stroke
+  pace follows the gear, and `StrokeSpeed` scales it. The blade stays in the water through the pull.
 - The blade splashes, with sound, as it hits the water. The effect is the game's own arrow-in-water splash,
   and the new `Splash` setting turns it off.
 - The crew rows in time: every oar follows the same beat, taken from the network clock, so all players see
   the same strokes.
+- The selected gear is shown with the helm's own arrows (one, two or three up for gears 1–3, one down for
+  reverse) around the steering-wheel icon, on the gunwale beside the rower's bench.
 
 ### Changed
 
 - Thrust rebalanced for the gears: `PowerPerRower` defaults to `0.08` (was `0.25`), `Gear2Multiplier` to `1.4`
   and `Gear3Multiplier` to `1.8`. Existing config files keep their own values.
-- Rowing no longer toggles with a key: it starts and stops with the oar and the bench. The `RowKey` and
-  `HoldToRow` settings are **removed**; `StaminaDrainInterval` is renamed `StaminaDrainIntervalSlow`.
+- Rowing no longer toggles with a key: it starts and stops with the oar and the bench. `StaminaDrainInterval`
+  is renamed `StaminaDrainIntervalSlow`.
 - Stamina drain is now a per-stroke cost (like swinging a weapon) instead of a flat drain over time: running
   out withholds that gear's thrust until stamina refills, instead of stopping rowing outright.
 - Rowers now leave the bench only with **E** or **Jump**, same as the helm. Previously W/S stood the rower
   up immediately (same vanilla rule that stands anyone up on movement input, which the helm is exempt from
   by being a "doodad controller" — rowers now get the same exemption for movement without becoming one).
-- The selected gear is shown with the helm's own arrows (one, two or three up for gears 1–3, one down for
-  reverse) around the steering-wheel icon, on the gunwale beside the rower's bench, instead of a message in the center of the
-  screen. The `ShowMessage` setting is **removed**.
 
-### Fixed
+### Removed
 
-- The blade now reaches the water and stays in it through the whole pull. The lean of the oar is adjusted every
-  frame to the water under the blade, following waves, the ship rolling and pitching, and the swing that used to
-  lift the blade out at both ends of the stroke. It leaves and re-enters the water quickly at the ends of the recovery.
-- On high hulls, an oar too short to reach the water slides down through the rower's hands instead of
-  paddling in the air.
+- The `RowKey`, `HoldToRow` and `ShowMessage` settings, since rowing follows the oar and the bench and the
+  gear is shown on the gunwale.
+- The oar borrowed from the ship's steering oar (or built in code) and the procedural rowing pose, replaced by
+  the new oar model and animation. The `OarScale` setting is gone with them.
 
 ## 2.0.0 - 2026-09-28
 
