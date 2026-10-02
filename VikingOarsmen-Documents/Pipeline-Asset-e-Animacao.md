@@ -139,3 +139,14 @@
 - ~~Técnica de animação: **override controller** vs **Playables**~~ → Playables ([[Steering]] item 9).
 - IK das mãos: manter o **manual** do `RowerPose` vs migrar para o **IK nativo** do Unity.
 - ~~Material: **mock do Jötunn** vs **shader do Club aplicado em runtime**~~ → shader do Club ([[Steering]] item 8).
+
+# Revisão:
+- [x] Ajuste de velocidade
+- [ ] Testar em todos os barcos
+	- Lado direito ficou meio "para dentro", testar em outros barcos
+	- Segurar no mastro permite remar
+- [ ] Refino do modelo do remo para dar personalidade
+- [ ] Teste em multiplayer
+- [x] Splash do remo na água
+- [ ] Thumbnail da arma
+

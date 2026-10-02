@@ -46,6 +46,10 @@ namespace VikingOarsmen
         private const float RowingGripZ = -0.08f;
         private const float RowingGripRoll = -90f;
 
+        // Tip of the blade along the model's shaft (+Z), from the oar's grip_top origin (meters; the
+        // blade_tip empty in art/oar/oar.blend).
+        internal const float BladeTipZ = 2.8f;
+
         // Rowing on the other side (mirrored clips) the right hand takes the left hand's place on the shaft,
         // mirrored, so the oar sits in it differently. Computed in Blender from the same rig.
         private static readonly Vector3 s_mirroredGripPosition = new Vector3(-0.0782f, 0.0071f, 0.2411f);

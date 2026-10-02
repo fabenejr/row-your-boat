@@ -39,3 +39,7 @@ Com base na primeira avaliação do que já foi feito do mod, observações de g
 ## 3. Asset do remo
 - Criação de um asset de remo medieval viking para o item
 - Aplicar e ajustar ao movimento de remada
+
+
+## 4. Audio de "row"
+- Adicionar uma audio de "row" baseado na selecao norueguesa

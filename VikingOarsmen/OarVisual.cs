@@ -7,8 +7,9 @@ namespace VikingOarsmen
 {
     /// <summary>
     /// Attached to every Player. While that player is rowing, on every client: plays the rowing animation
-    /// (RowerAnimation), moves the oar in their hand to the rowing grip, turns them to face the stern like a
-    /// real rower, and finds the gunwale beside their seat for the gear indicator (GearHud).
+    /// (RowerAnimation), moves the oar in their hand to the rowing grip, splashes as the blade enters the
+    /// water, turns them to face the stern like a real rower, and finds the gunwale beside their seat for
+    /// the gear indicator (GearHud).
     /// </summary>
     /// <remarks>
     /// The oar itself is the equipped weapon, already in the rower's hand (see OarItem). Only the visual
@@ -35,6 +36,11 @@ namespace VikingOarsmen
         // How far the rower must move on the ship before the gunwale is found again (meters).
         private const float RelocateDistance = 0.3f;
 
+        // Sea level used when the game can't tell (meters), and Floating.GetWaterLevel's answer below this
+        // means no water volume was found.
+        private const float DefaultSeaLevel = 30f;
+        private const float NoWater = -1000f;
+
         // Read by name, so a game update renaming it only leaves the oar in its weapon grip.
         private static readonly FieldInfo s_rightItemInstanceField = AccessTools.Field(typeof(VisEquipment), "m_rightItemInstance");
 
@@ -57,6 +63,11 @@ namespace VikingOarsmen
         // The hand-held oar last put in the rowing grip, and for which side, so it is set again only on change.
         private GameObject _rowingGripInstance;
         private bool _rowingGripMirrored;
+
+        // Whether the blade tip was under the water last frame, once that is known (no splash on the first frame).
+        private bool _bladeWet;
+        private bool _bladeTracked;
+        private WaterVolume _waterVolume;
 
         private void Awake()
         {
@@ -94,12 +105,48 @@ namespace VikingOarsmen
             }
 
             FaceStern(ship);
+            TrackSplash();
         }
 
         private void OnDestroy()
         {
             FaceForward();
             _animation.Destroy();
+        }
+
+        /// <summary>
+        /// Splashes where the blade tip breaks the surface on its way in. Runs after the Animator and the turn
+        /// towards the stern, so the tip is where it is drawn this frame.
+        /// </summary>
+        private void TrackSplash()
+        {
+            Transform model = _rowingGripInstance != null ? _rowingGripInstance.transform.Find("model") : null;
+            if (model == null)
+            {
+                _bladeTracked = false;
+                return;
+            }
+
+            Vector3 tip = model.TransformPoint(0f, 0f, OarItem.BladeTipZ);
+            float water = WaterLevel(tip);
+            bool wet = tip.y < water;
+            if (wet && !_bladeWet && _bladeTracked)
+            {
+                OarSplash.Play(new Vector3(tip.x, water, tip.z));
+            }
+            _bladeWet = wet;
+            _bladeTracked = true;
+        }
+
+        /// <summary>
+        /// World height of the water surface, waves included, at a world position.
+        /// </summary>
+        private float WaterLevel(Vector3 world)
+        {
+            // Probe at sea level, which is always inside the water volume, however high or low the blade is.
+            float sea = ZoneSystem.instance != null ? ZoneSystem.instance.m_waterLevel : DefaultSeaLevel;
+            float level = Floating.GetWaterLevel(new Vector3(world.x, sea, world.z), ref _waterVolume);
+            return level > NoWater ? level : sea;
         }
 
         /// <summary>

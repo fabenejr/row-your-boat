@@ -48,11 +48,11 @@ namespace VikingOarsmen
             Log = Logger;
 
             // Bind config entries (created with defaults on first launch).
-            PowerPerRower = Config.Bind("Physics", "PowerPerRower", 0.25f,
-                "Share of the maximum thrust a rower in Slow gear (1) adds. 0.25 = four rowers reach full speed.");
-            Gear2Multiplier = Config.Bind("Physics", "Gear2Multiplier", 1.5f,
+            PowerPerRower = Config.Bind("Physics", "PowerPerRower", 0.08f,
+                "Share of the maximum thrust a rower in Slow gear (1) adds. 0.25 = four rowers in Slow gear reach full speed.");
+            Gear2Multiplier = Config.Bind("Physics", "Gear2Multiplier", 1.4f,
                 "Thrust in Half gear (2), as a multiple of PowerPerRower.");
-            Gear3Multiplier = Config.Bind("Physics", "Gear3Multiplier", 2.0f,
+            Gear3Multiplier = Config.Bind("Physics", "Gear3Multiplier", 1.8f,
                 "Thrust in Full gear (3), as a multiple of PowerPerRower.");
             ReverseMultiplier = Config.Bind("Physics", "ReverseMultiplier", -1.0f,
                 "Thrust in reverse, as a multiple of PowerPerRower. Negative pushes the ship backward.");

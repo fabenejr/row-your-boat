@@ -170,9 +170,9 @@ O "15" do backlog era, na real, o multiplicador **1.5** (não um valor absoluto 
 
 | Config | Default | Substitui/complementa |
 | --- | --- | --- |
-| `PowerPerRower` | 0.25 (mantido) | base da marcha `Slow` |
-| `Gear2Multiplier` | 1.5 | novo |
-| `Gear3Multiplier` | 2.0 | novo |
+| `PowerPerRower` | ~~0.25~~ **0.08** (calibrado em jogo, 2026-10-02) | base da marcha `Slow` |
+| `Gear2Multiplier` | ~~1.5~~ **1.4** (calibrado em jogo) | novo |
+| `Gear3Multiplier` | ~~2.0~~ **1.8** (calibrado em jogo) | novo |
 | `ReverseMultiplier` | -1.0 | novo |
 | `MaxRowingPower` | 1.5 (ajustado em teste; era 1.0) | agora é um clamp simétrico (-Max..+Max) |
 | `StaminaDrainAmount` | 6 (ajustado em teste; era 1) | custo por remada, compartilhado entre marchas |

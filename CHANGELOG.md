@@ -25,6 +25,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ### Changed
 
+- Thrust rebalanced for the gears: `PowerPerRower` defaults to `0.08` (was `0.25`), `Gear2Multiplier` to `1.4`
+  and `Gear3Multiplier` to `1.8`. Existing config files keep their own values.
 - Rowing no longer toggles with a key: it starts and stops with the oar and the bench. The `RowKey` and
   `HoldToRow` settings are **removed**; `StaminaDrainInterval` is renamed `StaminaDrainIntervalSlow`.
 - Stamina drain is now a per-stroke cost (like swinging a weapon) instead of a flat drain over time: running

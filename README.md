@@ -59,9 +59,9 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 
 | Section | Key | Default | Description |
 | --- | --- | --- | --- |
-| Physics | `PowerPerRower` | `0.25` | Share of the maximum thrust a rower in gear 1 adds |
-| Physics | `Gear2Multiplier` | `1.5` | Thrust in gear 2, as a multiple of `PowerPerRower` |
-| Physics | `Gear3Multiplier` | `2.0` | Thrust in gear 3, as a multiple of `PowerPerRower` |
+| Physics | `PowerPerRower` | `0.08` | Share of the maximum thrust a rower in gear 1 adds |
+| Physics | `Gear2Multiplier` | `1.4` | Thrust in gear 2, as a multiple of `PowerPerRower` |
+| Physics | `Gear3Multiplier` | `1.8` | Thrust in gear 3, as a multiple of `PowerPerRower` |
 | Physics | `ReverseMultiplier` | `-1.0` | Thrust in reverse, as a multiple of `PowerPerRower` |
 | Physics | `MaxRowingPower` | `1.5` | Maximum total thrust, ahead or astern (1.0 = full sail with a strong tailwind) |
 | Physics | `RampUpTime` | `1.5` | Seconds to reach a new thrust target (crew changes, gear shifts, stopping) |

@@ -46,7 +46,7 @@ the decompiled game code, which is the best way to see what a method does before
 | `ShipRowingPatch.cs` | Harmony patches that add the mod's components to ships and players |
 | `RowingController.cs` | Local input (gear shifting, stamina checks) and synced rowing/gear state |
 | `ShipRowing.cs` | Gear-weighted thrust applied by the ship owner |
-| `OarVisual.cs` | Per-player rowing visuals: animation, rowing grip, facing the stern, gunwale for the gear indicator |
+| `OarVisual.cs` | Per-player rowing visuals: animation, rowing grip, blade splash, facing the stern, gunwale for the gear indicator |
 | `RowerAnimation.cs` | Plays the rowing clips over the game's Animator (Playables), in step with the crew |
 | `ModAssets.cs` | Loads the embedded AssetBundle (oar model, rowing clips) |
 | `OarSwing.cs` | Slower swing animation when attacking with the oar |
