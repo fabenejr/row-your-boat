@@ -6,19 +6,29 @@ namespace VikingOarsmen
     /// Handles the local player's rowing input, stamina drain and the synced rowing state.
     /// </summary>
     /// <remarks>
-    /// The rowing state is stored on the player's own ZDO (which the local player always owns) as
-    /// the ZDOID of the ship being rowed. Every client reads it: the ship owner to apply thrust
-    /// (<see cref="ShipRowing"/>) and everyone to draw the oar (<see cref="OarVisual"/>).
+    /// Sitting on a bench with the oar equipped activates rowing mode automatically, in neutral
+    /// (RowingGear.Stop); W/S then step through the gears exactly like Ship's own rudder control
+    /// (see VikingOarsmen-Documents/Plano-Marchas-e-Remo.md). Both the ship being rowed and the rower's
+    /// own gear are stored on the player's own ZDO (which the local player always owns). Every client
+    /// reads them: the ship owner to apply thrust (<see cref="ShipRowing"/>) and everyone to draw the
+    /// oar (<see cref="OarVisual"/>).
     /// </remarks>
     internal static class RowingController
     {
         // ZDO key holding the ZDOID of the ship the player is rowing (ZDOID.None when idle).
         private const string RowingShipKey = "VikingOarsmen_RowingShip";
 
-        // Whether the local player is currently rowing.
-        private static bool s_rowing;
+        // ZDO key holding the rower's own effective gear (RowingGear), synced the same way as the ship above.
+        private const string RowingGearKey = "VikingOarsmen_Gear";
 
-        // Time accumulated since the last stamina drain tick.
+        // Gear the player has selected with W/S, kept even while stamina suspends its thrust (see
+        // ResolveEffectiveGear) so the boost resumes on its own once stamina allows, without re-pressing.
+        private static RowingGear s_desiredGear = RowingGear.Stop;
+
+        // Whether the current stroke is withheld for lack of stamina (effective gear forced to Stop).
+        private static bool s_suspended;
+
+        // Time accumulated since the last stamina check for the current gear.
         private static float s_staminaTimer;
 
         /// <summary>
@@ -29,59 +39,62 @@ namespace VikingOarsmen
             Player player = Player.m_localPlayer;
             if (player == null)
             {
-                s_rowing = false;
+                s_desiredGear = RowingGear.Stop;
                 return;
             }
 
-            // Rowing requires sitting on one of the ship's benches.
             Ship ship = Ship.GetLocalShip();
-            bool canRow = ship != null && IsOnBench(player) && !player.IsDead();
-
-            // Resolve what the player wants based on the configured input mode.
+            bool onBench = ship != null && IsOnBench(player) && !player.IsDead();
+            bool hasOar = HasOarEquipped(player);
             bool inputAllowed = CanTakeGameplayInput();
-            KeyCode key = Plugin.RowKey.Value;
-            bool keyPressed = inputAllowed && Input.GetKeyDown(key);
-            bool wantsToRow = s_rowing;
-            if (Plugin.HoldToRow.Value)
+
+            if (!onBench || !hasOar)
             {
-                wantsToRow = inputAllowed && Input.GetKey(key);
-            }
-            else if (keyPressed)
-            {
-                wantsToRow = !s_rowing;
+                // Hint why W/S does nothing, same spirit as the old "sit on a bench" message, but only
+                // when the player is actually trying: seated, without the oar, pressing a rowing key.
+                if (onBench && !hasOar && inputAllowed
+                    && (ZInput.GetButtonDown("Forward") || ZInput.GetButtonDown("Backward")))
+                {
+                    player.Message(MessageHud.MessageType.Center, "Equip the oar to row.");
+                }
+
+                s_desiredGear = RowingGear.Stop;
+                s_suspended = false;
+                SetRowingGear(player, RowingGear.Stop);
+                SetRowingShip(player, null);
+                return;
             }
 
-            // Explain why nothing happens when trying to row while standing on a ship or steering it.
-            if (keyPressed && !s_rowing && ship != null && !canRow)
+            // Exit the bench explicitly, same as leaving the helm: W/S only shift gear while rowing
+            // (see IsRowingMode/the SetControls patch in ShipRowingPatch), so this is the way out.
+            if (inputAllowed && ZInput.GetButtonDown("Use"))
             {
-                string hint = player.GetControlledShip() != null
-                    ? "Quem está no leme não rema. Sente-se num banco para remar."
-                    : "Sente-se num banco para remar.";
-                player.Message(MessageHud.MessageType.Center, hint);
+                player.AttachStop();
+                return;
             }
 
-            // Getting up from the bench, leaving the ship or dying stops rowing (and hides the oar).
-            if (!canRow)
+            RowingGear previousGear = s_desiredGear;
+            if (inputAllowed)
             {
-                wantsToRow = false;
+                if (ZInput.GetButtonDown("Forward"))
+                {
+                    s_desiredGear = StepForward(s_desiredGear);
+                }
+                else if (ZInput.GetButtonDown("Backward"))
+                {
+                    s_desiredGear = StepBackward(s_desiredGear);
+                }
             }
 
-            if (wantsToRow && !s_rowing)
+            bool gearChanged = s_desiredGear != previousGear;
+            if (gearChanged)
             {
-                StartRowing(player);
-            }
-            else if (!wantsToRow && s_rowing)
-            {
-                StopRowing(player);
+                Plugin.Log.LogDebug($"Gear {previousGear} -> {s_desiredGear}");
             }
 
-            if (s_rowing)
-            {
-                DrainStamina(player);
-            }
-
-            // Keep the synced state pointing at the current ship (or none).
-            SetRowingShip(player, s_rowing ? ship : null);
+            RowingGear effectiveGear = ResolveEffectiveGear(player, gearChanged);
+            SetRowingGear(player, effectiveGear);
+            SetRowingShip(player, ship);
         }
 
         /// <summary>
@@ -99,6 +112,60 @@ namespace VikingOarsmen
         }
 
         /// <summary>
+        /// Returns the gear a player is currently rowing in (RowingGear.Stop/neutral when idle, or when
+        /// the boost is momentarily suspended for lack of stamina).
+        /// </summary>
+        internal static RowingGear GetRowingGear(Player player)
+        {
+            ZNetView nview = player.GetComponent<ZNetView>();
+            if (nview == null || !nview.IsValid())
+            {
+                return RowingGear.Stop;
+            }
+
+            return (RowingGear)nview.GetZDO().GetInt(RowingGearKey, (int)RowingGear.Stop);
+        }
+
+        /// <summary>
+        /// The gear the local player has selected with W/S, even while stamina withholds its thrust —
+        /// what the gear indicator (GearHud) shows, same as the helm shows its setting, not its speed.
+        /// </summary>
+        internal static RowingGear GetSelectedGear()
+        {
+            return s_desiredGear;
+        }
+
+        /// <summary>
+        /// Writes the rower's own gear to their ZDO, only when it changes (same discipline as SetRowingShip).
+        /// </summary>
+        private static void SetRowingGear(Player player, RowingGear gear)
+        {
+            ZNetView playerView = player.GetComponent<ZNetView>();
+            if (playerView == null || !playerView.IsValid() || !playerView.IsOwner())
+            {
+                return;
+            }
+
+            ZDO zdo = playerView.GetZDO();
+            if ((RowingGear)zdo.GetInt(RowingGearKey, (int)RowingGear.Stop) != gear)
+            {
+                zdo.Set(RowingGearKey, (int)gear);
+            }
+        }
+
+        /// <summary>
+        /// True while the local player is seated with the oar equipped — i.e. W/S shift gear instead of
+        /// standing them up. Queried by the Player.SetControls patch in ShipRowingPatch, which is the
+        /// only place that can stop the vanilla "any movement input stands you up" behavior (the helm
+        /// avoids it by being a doodad controller instead; see the plan doc for why rowers aren't).
+        /// </summary>
+        internal static bool IsRowingMode(Player player)
+        {
+            Ship ship = Ship.GetLocalShip();
+            return ship != null && !player.IsDead() && IsOnBench(player) && HasOarEquipped(player);
+        }
+
+        /// <summary>
         /// True while the player sits on one of the ship's benches. Taking the helm also attaches the
         /// player to the ship, but the helmsman is steering and can't row.
         /// </summary>
@@ -113,56 +180,117 @@ namespace VikingOarsmen
             return seat != null && seat.GetComponentInParent<Chair>() != null;
         }
 
-        private static void StartRowing(Player player)
+        /// <summary>
+        /// True while the player's current weapon is the oar (see OarItem) — required to row.
+        /// </summary>
+        private static bool HasOarEquipped(Player player)
         {
-            // Refuse to start without enough stamina for the next drain tick.
-            float cost = Plugin.StaminaDrainAmount.Value;
-            if (cost > 0f && !player.HaveStamina(cost))
-            {
-                FlashStaminaBar();
-                return;
-            }
+            return OarItem.IsOar(player.GetCurrentWeapon());
+        }
 
-            s_rowing = true;
-            s_staminaTimer = 0f;
-
-            if (Plugin.ShowMessage.Value)
+        /// <summary>
+        /// One degree-of-freedom step forward, mirroring Ship.RPC_Forward exactly (Stop→Slow→Half→Full,
+        /// Back→Stop; no-op at Full) so W behaves just like steering the ship.
+        /// </summary>
+        private static RowingGear StepForward(RowingGear gear)
+        {
+            switch (gear)
             {
-                player.Message(MessageHud.MessageType.Center, "Remando!");
+                case RowingGear.Stop: return RowingGear.Slow;
+                case RowingGear.Slow: return RowingGear.Half;
+                case RowingGear.Half: return RowingGear.Full;
+                case RowingGear.Back: return RowingGear.Stop;
+                default: return gear; // Full
             }
         }
 
-        private static void StopRowing(Player player)
+        /// <summary>
+        /// One degree-of-freedom step backward, mirroring Ship.RPC_Backward exactly.
+        /// </summary>
+        private static RowingGear StepBackward(RowingGear gear)
         {
-            s_rowing = false;
+            switch (gear)
+            {
+                case RowingGear.Stop: return RowingGear.Back;
+                case RowingGear.Slow: return RowingGear.Stop;
+                case RowingGear.Half: return RowingGear.Slow;
+                case RowingGear.Full: return RowingGear.Half;
+                default: return gear; // Back
+            }
         }
 
-        private static void DrainStamina(Player player)
+        /// <summary>
+        /// Weapon-swing style stamina check: each active gear (everything but Stop) costs
+        /// StaminaDrainAmount at its own interval (StaminaDrainInterval*, Slow and Back share one). A
+        /// failed check withholds thrust (returns Stop) without changing the player's selected gear,
+        /// which resumes on its own the next time a check succeeds — no re-pressing W/S needed.
+        /// </summary>
+        private static RowingGear ResolveEffectiveGear(Player player, bool gearChanged)
         {
+            if (s_desiredGear == RowingGear.Stop)
+            {
+                s_staminaTimer = 0f;
+                s_suspended = false;
+                return RowingGear.Stop;
+            }
+
             float cost = Plugin.StaminaDrainAmount.Value;
             if (cost <= 0f)
             {
+                return s_desiredGear;
+            }
+
+            if (gearChanged)
+            {
+                // Judge a freshly selected gear right away, same as the old StartRowing pre-check.
+                s_staminaTimer = 0f;
+                CheckStamina(player, cost);
+            }
+            else
+            {
+                s_staminaTimer += Time.deltaTime;
+                if (s_staminaTimer >= GetInterval(s_desiredGear))
+                {
+                    s_staminaTimer = 0f;
+                    CheckStamina(player, cost);
+                }
+            }
+
+            return s_suspended ? RowingGear.Stop : s_desiredGear;
+        }
+
+        /// <summary>
+        /// Spends a stroke's worth of stamina if available; otherwise suspends the boost. Only flashes
+        /// the stamina bar on the transition into suspension, not on every retry while stuck.
+        /// </summary>
+        private static void CheckStamina(Player player, float cost)
+        {
+            if (player.HaveStamina(cost))
+            {
+                player.UseStamina(cost);
+                s_suspended = false;
                 return;
             }
 
-            // Charge one tick every StaminaDrainInterval seconds of rowing.
-            s_staminaTimer += Time.deltaTime;
-            if (s_staminaTimer < Plugin.StaminaDrainInterval.Value)
+            if (!s_suspended)
             {
-                return;
-            }
-            s_staminaTimer = 0f;
-
-            if (!player.HaveStamina(cost))
-            {
-                // Exhausted: stop rowing and warn the player.
                 FlashStaminaBar();
-                player.Message(MessageHud.MessageType.Center, "Cansado demais para remar!");
-                StopRowing(player);
-                return;
             }
+            s_suspended = true;
+        }
 
-            player.UseStamina(cost);
+        /// <summary>
+        /// Seconds between stamina checks for a gear. Slow and Back share one value, so reverse costs the
+        /// same stamina as gear 1; Half and Full check more often, draining faster overall at the same per-check cost.
+        /// </summary>
+        private static float GetInterval(RowingGear gear)
+        {
+            switch (gear)
+            {
+                case RowingGear.Half: return Plugin.StaminaDrainIntervalHalf.Value;
+                case RowingGear.Full: return Plugin.StaminaDrainIntervalFull.Value;
+                default: return Plugin.StaminaDrainIntervalSlow.Value; // Slow, Back
+            }
         }
 
         /// <summary>

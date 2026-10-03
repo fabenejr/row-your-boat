@@ -2,14 +2,19 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
-using UnityEngine;
+using Jotunn;
 
 namespace VikingOarsmen
 {
     /// <summary>
     /// Mod entry point, instantiated by BepInEx when the game starts.
     /// </summary>
+    /// <remarks>
+    /// No [NetworkCompatibility] here: this mod stays usable by only part of the crew and dedicated
+    /// servers never need it (see README "Multiplayer"), unlike a typical Jotunn content mod.
+    /// </remarks>
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
+    [BepInDependency(Main.ModGuid)]
     public class Plugin : BaseUnityPlugin
     {
         // Plugin identity used by BepInEx and Harmony.
@@ -21,17 +26,18 @@ namespace VikingOarsmen
         internal static ManualLogSource Log;
 
         // User settings, stored in BepInEx/config/com.fabenejr.vikingoarsmen.cfg.
-        internal static ConfigEntry<KeyCode> RowKey;
-        internal static ConfigEntry<bool> HoldToRow;
         internal static ConfigEntry<float> PowerPerRower;
+        internal static ConfigEntry<float> Gear2Multiplier;
+        internal static ConfigEntry<float> Gear3Multiplier;
+        internal static ConfigEntry<float> ReverseMultiplier;
         internal static ConfigEntry<float> MaxRowingPower;
         internal static ConfigEntry<float> RampUpTime;
         internal static ConfigEntry<float> StaminaDrainAmount;
-        internal static ConfigEntry<float> StaminaDrainInterval;
+        internal static ConfigEntry<float> StaminaDrainIntervalSlow;
+        internal static ConfigEntry<float> StaminaDrainIntervalHalf;
+        internal static ConfigEntry<float> StaminaDrainIntervalFull;
         internal static ConfigEntry<float> StrokeSpeed;
-        internal static ConfigEntry<float> OarScale;
         internal static ConfigEntry<bool> Splash;
-        internal static ConfigEntry<bool> ShowMessage;
 
         // Harmony instance that owns all patches applied by this mod.
         private Harmony _harmony;
@@ -42,35 +48,39 @@ namespace VikingOarsmen
             Log = Logger;
 
             // Bind config entries (created with defaults on first launch).
-            RowKey = Config.Bind("Controls", "RowKey", KeyCode.R,
-                "Key used to start/stop rowing. Note: R also toggles weapon visibility in vanilla Valheim.");
-            HoldToRow = Config.Bind("Controls", "HoldToRow", false,
-                "false = press once to start rowing and again to stop. true = row only while the key is held.");
-            PowerPerRower = Config.Bind("Physics", "PowerPerRower", 0.25f,
-                "Share of the maximum thrust each rower adds. 0.25 = four rowers reach full speed.");
-            MaxRowingPower = Config.Bind("Physics", "MaxRowingPower", 1.0f,
-                "Maximum total rowing thrust. 1.0 = same as a full sail with a strong tailwind.");
+            PowerPerRower = Config.Bind("Physics", "PowerPerRower", 0.08f,
+                "Share of the maximum thrust a rower in Slow gear (1) adds. 0.25 = four rowers in Slow gear reach full speed.");
+            Gear2Multiplier = Config.Bind("Physics", "Gear2Multiplier", 1.4f,
+                "Thrust in Half gear (2), as a multiple of PowerPerRower.");
+            Gear3Multiplier = Config.Bind("Physics", "Gear3Multiplier", 1.8f,
+                "Thrust in Full gear (3), as a multiple of PowerPerRower.");
+            ReverseMultiplier = Config.Bind("Physics", "ReverseMultiplier", -1.0f,
+                "Thrust in reverse, as a multiple of PowerPerRower. Negative pushes the ship backward.");
+            MaxRowingPower = Config.Bind("Physics", "MaxRowingPower", 1.5f,
+                "Maximum total rowing thrust, ahead or astern. 1.0 = same as a full sail with a strong tailwind.");
             RampUpTime = Config.Bind("Physics", "RampUpTime", 1.5f,
-                "Seconds for the rowing thrust to reach full power (and to fade out after stopping).");
-            StaminaDrainAmount = Config.Bind("Gameplay", "StaminaDrainAmount", 1.0f,
-                "Stamina consumed on every drain tick while rowing. Set to 0 to disable.");
-            StaminaDrainInterval = Config.Bind("Gameplay", "StaminaDrainInterval", 10.0f,
-                "Seconds between stamina drain ticks while rowing.");
+                "Seconds for the rowing thrust to reach a new target (crew changes, gear shifts, stopping).");
+            StaminaDrainAmount = Config.Bind("Gameplay", "StaminaDrainAmount", 6.0f,
+                "Stamina spent on every stroke in any gear but neutral. Set to 0 to disable the cost entirely.");
+            StaminaDrainIntervalSlow = Config.Bind("Gameplay", "StaminaDrainIntervalSlow", 2.0f,
+                "Seconds between strokes in Slow gear (1) and reverse.");
+            StaminaDrainIntervalHalf = Config.Bind("Gameplay", "StaminaDrainIntervalHalf", 1.5f,
+                "Seconds between strokes in Half gear (2).");
+            StaminaDrainIntervalFull = Config.Bind("Gameplay", "StaminaDrainIntervalFull", 1.0f,
+                "Seconds between strokes in Full gear (3).");
             StrokeSpeed = Config.Bind("Visual", "StrokeSpeed", 1.0f,
-                "Speed of the oar stroke animation. 1.0 = one stroke every 1.5 seconds.");
-            OarScale = Config.Bind("Visual", "OarScale", 0.8f,
-                "Size of the oar compared to the ship's steering oar it is copied from (1.0 = same size). Applied when rowing starts.");
+                "Speed of the rowing animation in every gear. 1.0 = the animation's own pace in Half gear (2); Slow and reverse are slower, Full faster.");
             Splash = Config.Bind("Visual", "Splash", true,
                 "Splash and play a sound when the oar blade hits the water.");
-            ShowMessage = Config.Bind("UI", "ShowMessage", true,
-                "Show \"Remando!\" in the center of the screen when rowing starts.");
 
             // Apply every [HarmonyPatch] found in this assembly.
             _harmony = new Harmony(PluginGuid);
             _harmony.PatchAll();
 
+            OarItem.Setup();
+
             // Confirm successful initialization in BepInEx/LogOutput.log.
-            Log.LogInfo($"{PluginName} v{PluginVersion} loaded. Press {RowKey.Value} while sitting on a ship bench to row.");
+            Log.LogInfo($"{PluginName} v{PluginVersion} loaded. Equip the oar and sit on a ship bench to row.");
         }
 
         // Input is polled per frame here so key presses are never missed.

@@ -2,8 +2,9 @@
   "name": "VikingOarsmen",
   "version_number": "2.0.0",
   "website_url": "https://github.com/fabenejr/row-your-boat",
-  "description": "Row your ship by hand: sit on a bench, press R and pull the oar. Each rower adds speed.",
+  "description": "Row your ship by hand: craft an oar, equip it, sit on a bench and shift gears with W/S. Each rower adds thrust, with animated strokes, splashes and a stamina cost per stroke.",
   "dependencies": [
-    "denikson-BepInExPack_Valheim-5.4.2351"
+    "denikson-BepInExPack_Valheim-5.4.2351",
+    "ValheimModding-Jotunn-2.30.2"
   ]
 }

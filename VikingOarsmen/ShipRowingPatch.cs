@@ -1,9 +1,11 @@
 using HarmonyLib;
+using UnityEngine;
 
 namespace VikingOarsmen
 {
     /// <summary>
-    /// Harmony patches that attach the mod's components to vanilla objects when they spawn.
+    /// Harmony patches that attach the mod's components to vanilla objects when they spawn, and the one
+    /// behavior patch rowing needs (see Player_SetControls_Prefix).
     /// </summary>
     [HarmonyPatch]
     internal static class ShipRowingPatch
@@ -38,6 +40,56 @@ namespace VikingOarsmen
             if (__instance.GetComponent<OarVisual>() == null)
             {
                 __instance.gameObject.AddComponent<OarVisual>();
+            }
+        }
+
+        /// <summary>
+        /// Adds the rower's gear indicator to the HUD.
+        /// </summary>
+        [HarmonyPatch(typeof(Hud), "Awake")]
+        [HarmonyPostfix]
+        private static void Hud_Awake_Postfix(Hud __instance)
+        {
+            if (__instance.GetComponent<GearHud>() == null)
+            {
+                __instance.gameObject.AddComponent<GearHud>();
+            }
+        }
+
+        /// <summary>
+        /// Slows the oar's swing animation (see OarSwing).
+        /// </summary>
+        [HarmonyPatch(typeof(CharacterAnimEvent), nameof(CharacterAnimEvent.CustomFixedUpdate))]
+        [HarmonyPostfix]
+        private static void CharacterAnimEvent_CustomFixedUpdate_Postfix(CharacterAnimEvent __instance)
+        {
+            OarSwing.OnFixedUpdate(__instance);
+        }
+
+        /// <summary>
+        /// Keeps the oar's swing slowed when an animation event changes the speed mid-attack (see OarSwing).
+        /// </summary>
+        [HarmonyPatch(typeof(CharacterAnimEvent), nameof(CharacterAnimEvent.Speed))]
+        [HarmonyPostfix]
+        private static void CharacterAnimEvent_Speed_Postfix(CharacterAnimEvent __instance)
+        {
+            OarSwing.OnSpeedSet(__instance);
+        }
+
+        /// <summary>
+        /// Stops movement input from standing the rower up while rowing. Vanilla auto-detaches any
+        /// seated player on movement input unless they're a doodad controller (like the helm) — rowers
+        /// aren't one (see RowingController.IsRowingMode), so without this W/S would stand them up
+        /// instead of shifting gear. Jump still exits normally; RowingController.Update() also handles
+        /// the interact (E) key explicitly, same two ways out as the helm.
+        /// </summary>
+        [HarmonyPatch(typeof(Player), "SetControls")]
+        [HarmonyPrefix]
+        private static void Player_SetControls_Prefix(Player __instance, ref Vector3 movedir)
+        {
+            if (__instance == Player.m_localPlayer && RowingController.IsRowingMode(__instance))
+            {
+                movedir = Vector3.zero;
             }
         }
     }

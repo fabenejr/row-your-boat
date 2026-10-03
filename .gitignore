@@ -9,3 +9,7 @@ Local.props
 
 # Release output (scripts/release.ps1)
 dist/
+
+# Obsidian per-user workspace state and Blender backups
+VikingOarsmen-Documents/.obsidian/workspace.json
+*.blend1

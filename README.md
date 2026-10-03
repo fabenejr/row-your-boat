@@ -1,28 +1,27 @@
 # Viking Oarsmen
 
 A [BepInEx](https://github.com/BepInEx/BepInEx) mod for **Valheim** that lets players row their ship by hand.
-Sit on a bench and press a key: your character grabs an oar over the side and paddles the ship forward.
-The more of the crew rows, the faster you go, and whoever is at the helm keeps steering.
+Craft an oar, equip it, sit on a bench: your character grabs it over the side and paddles the ship forward.
+W/S shift gears just like the helm's rudder, and the more of the crew rows, the faster you go.
 
 ## Features
 
-- **Manual rowing:** sit on a bench, then press **R** to start rowing and press it again to stop. You can switch to hold-to-row in the config.
-- **Crew-powered speed:** each rower adds 25% of the maximum thrust, so four rowers match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
+- **Oar required:** craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon — it also works as one, based on the Club.
+- **Gear shifting:** sitting on a bench with the oar equipped puts you in neutral automatically. W/S step through reverse, neutral and gears 1–3, exactly like steering a ship, except it never turns.
+- **Crew-powered speed:** each rower adds thrust based on their gear (reverse and gears 1–3), so four rowers in gear 1 match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
 - **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
-- **Animated oar:** the oar is the ship's own steering oar, held over the gunwale beside you like a paddle. The blade digs in ahead of you, pulls back through the water, then lifts out, turns flat and swings forward again. It appears only while rowing and disappears as soon as you get up.
-- **Blade in the water:** the lean of the oar is adjusted every frame to the water under the blade, so it stays in the water through the whole pull, over waves and while the ship rolls, and clears it on the way back. On a high hull, the oar slides down through your hands to reach the water.
+- **Rowing animation:** the oar is a custom model held in both hands, and the rower sits facing the stern. The stroke is a real animation: the blade enters the water at the catch, the body pulls back through the drive, then the oar lifts out and swings forward. Stroke pace follows the gear, and `StrokeSpeed` scales it. The oar returns to a normal weapon grip when you get up.
 - **Splash:** the blade splashes, with sound, as it hits the water, using the game's own arrow-in-water effect.
 - **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
-- **Rowing pose:** your character holds the oar with both hands, the arms follow it through the stroke, and the torso reaches forward at the catch, pulls back through the drive and leans towards the oar.
-- **Fits every ship:** the oar rests on the actual gunwale on the side you sit on, at a height that suits the hull and the water level.
-- **Uses the game's own art:** ships without a steering oar borrow the Karve's, so no extra asset files are needed. If none can be found, a simple oar built in code is used instead.
-- **Stamina cost:** 1 stamina every 10 seconds of rowing. You stop rowing automatically when exhausted.
+- **Gear indicator:** the selected gear is shown with the helm's own arrows on the gunwale beside your bench.
+- **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
 
 ## Requirements
 
 - Valheim (PC)
 - [BepInExPack Valheim](https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/)
+- [Jötunn, the Valheim Library](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/)
 
 ## Installation
 
@@ -38,9 +37,10 @@ and choose *Import local mod* in the manager.
 
 ## Usage
 
-1. Board a ship and **sit on a bench** (press **E** on it).
-2. Press **R** to start rowing. "Remando!" shows up and your oar appears.
-3. Press **R** again to stop. Rowing also stops, and the oar disappears, when you get up from the bench, die or run out of stamina.
+1. Craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon.
+2. Board a ship and **sit on a bench** (press **E** on it). Rowing starts automatically, in neutral.
+3. **W**/**S** shift gear: neutral → 1 → 2 → 3 ahead, or neutral → reverse. Same controls as the ship's own rudder, minus steering.
+4. Getting up from the bench, dying or switching away from the oar stops rowing (and hides it) immediately.
 
 You can row with the sail up. The two forces add together.
 Only the crew on the benches row: whoever is at the helm steers. Ships without benches, like the raft, can't be rowed.
@@ -48,7 +48,7 @@ Only the crew on the benches row: whoever is at the helm steers. Ships without b
 ### Quick test in single player
 
 Open the console with **F5** and run `devcommands`, `god` and `spawn VikingShip` (or `spawn Karve`) while facing the water.
-Close the console, climb aboard, sit on a bench and press **R**.
+Close the console, climb aboard, craft and equip the oar, then sit on a bench.
 
 ## Configuration
 
@@ -56,17 +56,18 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 
 | Section | Key | Default | Description |
 | --- | --- | --- | --- |
-| Controls | `RowKey` | `R` | Key to start/stop rowing (R also hides weapons in vanilla) |
-| Controls | `HoldToRow` | `false` | `true` = row only while the key is held |
-| Physics | `PowerPerRower` | `0.25` | Share of the maximum thrust each rower adds |
-| Physics | `MaxRowingPower` | `1.0` | Maximum total thrust (1.0 = full sail with a strong tailwind) |
-| Physics | `RampUpTime` | `1.5` | Seconds to reach full thrust (and to fade out) |
-| Gameplay | `StaminaDrainAmount` | `1` | Stamina per drain tick (0 disables) |
-| Gameplay | `StaminaDrainInterval` | `10` | Seconds between drain ticks |
-| Visual | `StrokeSpeed` | `1.0` | Speed of the oar stroke (1.0 = one stroke every 1.5 seconds) |
-| Visual | `OarScale` | `0.8` | Size of the oar compared to the ship's steering oar (1.0 = same size) |
+| Physics | `PowerPerRower` | `0.08` | Share of the maximum thrust a rower in gear 1 adds |
+| Physics | `Gear2Multiplier` | `1.4` | Thrust in gear 2, as a multiple of `PowerPerRower` |
+| Physics | `Gear3Multiplier` | `1.8` | Thrust in gear 3, as a multiple of `PowerPerRower` |
+| Physics | `ReverseMultiplier` | `-1.0` | Thrust in reverse, as a multiple of `PowerPerRower` |
+| Physics | `MaxRowingPower` | `1.5` | Maximum total thrust, ahead or astern (1.0 = full sail with a strong tailwind) |
+| Physics | `RampUpTime` | `1.5` | Seconds to reach a new thrust target (crew changes, gear shifts, stopping) |
+| Gameplay | `StaminaDrainAmount` | `6` | Stamina per stroke, any gear but neutral (0 disables the cost) |
+| Gameplay | `StaminaDrainIntervalSlow` | `2` | Seconds between strokes in gear 1 and reverse |
+| Gameplay | `StaminaDrainIntervalHalf` | `1.5` | Seconds between strokes in gear 2 |
+| Gameplay | `StaminaDrainIntervalFull` | `1` | Seconds between strokes in gear 3 |
+| Visual | `StrokeSpeed` | `1.0` | Speed of the rowing animation in every gear (1.0 = the animation's own pace in Half gear) |
 | Visual | `Splash` | `true` | Splash and play a sound when the blade hits the water |
-| UI | `ShowMessage` | `true` | Show "Remando!" when rowing starts |
 
 ## Multiplayer
 
@@ -79,7 +80,7 @@ thrust, and every client draws the oars.
 
 ## Building from source
 
-Prerequisites: Visual Studio 2022+ with **.NET desktop development**, or the .NET SDK, plus Valheim with BepInExPack installed.
+Prerequisites: Visual Studio 2022+ with **.NET desktop development**, or the .NET SDK, plus Valheim with BepInExPack and Jötunn installed.
 
 1. Clone the repository.
 2. Copy `Local.props.example` to `Local.props` and set `ValheimDir` to your Valheim folder.

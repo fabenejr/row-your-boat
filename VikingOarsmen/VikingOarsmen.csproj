@@ -31,6 +31,17 @@
     <BepInExPluginsDir>$(ValheimDir)\BepInEx\plugins</BepInExPluginsDir>
   </PropertyGroup>
 
+  <!-- Jötunn is a separate mod the player installs themselves (see package/manifest.json dependencies);
+       ExcludeAssets/PrivateAssets keep it compile-time only, like the HintPath references below. -->
+  <ItemGroup>
+    <PackageReference Include="JotunnLib" Version="2.30.2" ExcludeAssets="runtime;build;buildTransitive" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Oar model and rowing animations built in Unity, shipped inside the DLL and loaded by ModAssets. -->
+  <ItemGroup>
+    <EmbeddedResource Include="AssetBundles\vikingoarsmen" LogicalName="VikingOarsmen.AssetBundles.vikingoarsmen" />
+  </ItemGroup>
+
   <!-- Private=false: game assemblies are compile-time only and must not be copied to bin. -->
   <ItemGroup>
     <Reference Include="BepInEx">
@@ -66,9 +77,19 @@
       <HintPath>$(ManagedDir)\UnityEngine.PhysicsModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <!-- Required for Animator / HumanBodyBones (rower pose). -->
+    <!-- Required for Animator / HumanBodyBones (rowing animation). -->
     <Reference Include="UnityEngine.AnimationModule">
       <HintPath>$(ManagedDir)\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Required for AssetBundle (oar model, rowing animations). -->
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>$(ManagedDir)\UnityEngine.AssetBundleModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Required for the Image fields of Hud (gear indicator). -->
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
