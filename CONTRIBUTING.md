@@ -57,6 +57,7 @@ the decompiled game code, which is the best way to see what a method does before
 | `VikingOarsmen-Documents/` | Design notes (Obsidian vault): plan, steering decisions and the asset pipeline |
 | `package/` | Thunderstore manifest and icon |
 | `scripts/release.ps1` | Release packaging (see [RELEASING.md](RELEASING.md)) |
+| `.github/workflows/release.yml` | Drafts the GitHub release when a `vX.Y.Z` tag is pushed |
 
 ## Coding guidelines
 

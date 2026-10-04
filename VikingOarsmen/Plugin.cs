@@ -20,7 +20,7 @@ namespace VikingOarsmen
         // Plugin identity used by BepInEx and Harmony.
         public const string PluginGuid = "com.fabenejr.vikingoarsmen";
         public const string PluginName = "Viking Oarsmen";
-        public const string PluginVersion = "2.0.0";
+        public const string PluginVersion = "3.0.0";
 
         // Shared logger so other classes can write to the BepInEx log.
         internal static ManualLogSource Log;

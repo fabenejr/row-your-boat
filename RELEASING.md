@@ -1,7 +1,8 @@
 # Releasing
 
 Releases are cut manually by a maintainer. There is no CI build because it would need Valheim's game
-assemblies, which can't be redistributed. The whole process is scripted in `scripts/release.ps1`.
+assemblies, which can't be redistributed. The build and packaging are scripted in `scripts/release.ps1`; pushing the
+tag triggers `.github/workflows/release.yml`, which drafts the GitHub release.
 
 ## Versioning
 
@@ -31,14 +32,18 @@ The version lives in three places, and the script keeps all of them in sync:
 4. **Commit, tag and push:**
    ```powershell
    git add -A
-   git commit -m "Release v1.2.0"
+   git commit -m "chore(release): v1.2.0"
    git tag -a v1.2.0 -m "Viking Oarsmen v1.2.0"
    git push origin main --follow-tags
    ```
-5. **Create the GitHub release:**
+5. **Publish the GitHub release.** Pushing the tag runs the *Release* workflow, which checks that the tag matches
+   the version in the three files and creates a **draft** release with this version's changelog section as
+   notes. Attach the build and publish the draft:
    ```powershell
-   gh release create v1.2.0 dist\VikingOarsmen-1.2.0.zip dist\VikingOarsmen.dll --title "Viking Oarsmen v1.2.0" --notes-file dist\release-notes-1.2.0.md
+   gh release upload v1.2.0 dist\VikingOarsmen-1.2.0.zip dist\VikingOarsmen.dll
+   gh release edit v1.2.0 --draft=false
    ```
+   The draft is not published automatically because the CI can't build the DLL.
 6. **(Optional) Thunderstore:** upload `dist/VikingOarsmen-<version>.zip` at
    <https://thunderstore.io/c/valheim/create/> under the Valheim community.
 
