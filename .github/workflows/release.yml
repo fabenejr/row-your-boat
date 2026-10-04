@@ -1,0 +1,53 @@
+name: Release
+
+# Creates a draft GitHub release when a version tag is pushed. There is no build here because the plugin
+# needs Valheim's proprietary assemblies; attach the zip/DLL from scripts/release.ps1 and publish the draft.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches the declared version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          check() {
+            if ! grep -q "$2" "$1"; then
+              echo "::error file=$1::Expected version $version"
+              exit 1
+            fi
+          }
+          check VikingOarsmen/VikingOarsmen.csproj "<Version>$version</Version>"
+          check VikingOarsmen/Plugin.cs "PluginVersion = \"$version\""
+          check package/manifest.json "\"version_number\": \"$version\""
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          tr -d '\r' < CHANGELOG.md | awk -v v="$version" '
+            $0 ~ "^## " v " " { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "::error file=CHANGELOG.md::No section found for $version"
+            exit 1
+          fi
+
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --draft \
+            --verify-tag \
+            --title "Viking Oarsmen $GITHUB_REF_NAME" \
+            --notes-file release-notes.md

@@ -112,10 +112,10 @@ try {
     Write-Host "== Next steps ==" -ForegroundColor Green
     Write-Host "  1. Test dist\VikingOarsmen.dll in game."
     Write-Host "  2. git add -A"
-    Write-Host "  3. git commit -m `"Release v$Version`""
+    Write-Host "  3. git commit -m `"chore(release): v$Version`""
     Write-Host "  4. git tag -a v$Version -m `"Viking Oarsmen v$Version`""
     Write-Host "  5. git push origin main --follow-tags"
-    Write-Host "  6. gh release create v$Version dist\VikingOarsmen-$Version.zip dist\VikingOarsmen.dll --title `"Viking Oarsmen v$Version`" --notes-file dist\release-notes-$Version.md"
+    Write-Host "  6. Wait for the Release workflow to draft the release, then: gh release upload v$Version dist\VikingOarsmen-$Version.zip dist\VikingOarsmen.dll; gh release edit v$Version --draft=false"
     Write-Host "  7. (Optional) upload dist\VikingOarsmen-$Version.zip to https://thunderstore.io/c/valheim/create/"
 }
 finally {
