@@ -26,7 +26,8 @@ namespace VikingOarsmen
             internal int StationLevel;
             // Jötunn's own type, not a tuple: the game's runtime has no System.ValueTuple.
             internal RequirementConfig[] Requirements;
-            internal float BackOffsetZ;
+            internal Vector3 BackPosition;
+            internal Quaternion BackRotation = Quaternion.identity;
 
             // Stats over the Club baseline; see the constants below for the oar's.
             internal float Weight = OarItem.Weight;
@@ -46,6 +47,17 @@ namespace VikingOarsmen
             internal float BladeTipZ = DefaultBladeTipZ;
         }
 
+        // Where the model sits when sheathed on the back, tuned live with UnityExplorer. Declared before the
+        // oar kinds: static fields are initialized in the order they appear.
+        // The oar slides along its shaft, so the blade doesn't go through the ground.
+        private static readonly Vector3 s_backPosition = new Vector3(0f, 0f, -0.8708f);
+        // The Drakkar Oar is too long to hang like the other two-handed weapons, so it is also turned. Tuned by
+        // rotating the player's BackTwohanded_attach to (43.2835, 224.8704, 95.8602); that bone holds every
+        // two-handed weapon, so only the difference from its vanilla rotation goes on our model.
+        private static readonly Vector3 s_drakkarBackPosition = new Vector3(0.0883f, 1.2553f, -2.2153f);
+        private static readonly Quaternion s_drakkarBackRotation =
+            new Quaternion(0.091977f, 0.220199f, -0.921992f, 0.304931f);
+
         private static readonly OarKind s_oar = new OarKind
         {
             PrefabName = "VikingOarsmen_Oar",
@@ -55,7 +67,7 @@ namespace VikingOarsmen
             Description = "A viking oar. Equip it and sit on a ship's bench to row.",
             StationLevel = 1,
             Requirements = new[] { new RequirementConfig("FineWood", 6) },
-            BackOffsetZ = BackOffsetZ,
+            BackPosition = s_backPosition,
         };
 
         private static readonly OarKind s_drakkarOar = new OarKind
@@ -68,8 +80,8 @@ namespace VikingOarsmen
                 "Equip it and sit on a ship's bench to row.",
             StationLevel = 2,
             Requirements = new[] { new RequirementConfig("YggdrasilWood", 16), new RequirementConfig("Resin", 8) },
-            // The same middle of the oar on the back as the oar's: half its extra length further down.
-            BackOffsetZ = DrakkarBackOffsetZ,
+            BackPosition = s_drakkarBackPosition,
+            BackRotation = s_drakkarBackRotation,
             Weight = 8f,
             Durability = 90f,
             Knockback = 300f,
@@ -102,11 +114,6 @@ namespace VikingOarsmen
         // Slides the oar along its shaft in the hand, so the grip falls nearer the middle of the oar
         // (tuned live with UnityExplorer).
         private const float HandOffsetZ = -0.4f;
-
-        // Slides the oar along its shaft when sheathed on the back, so the blade doesn't go through the
-        // ground (tuned live with UnityExplorer). The Drakkar Oar is 1.87 m longer: half of that further down.
-        private const float BackOffsetZ = -0.8708f;
-        private const float DrakkarBackOffsetZ = -1.8f;
 
         // While rowing the oar is held near the end of its handle and turned a quarter around its shaft, so
         // the blade cuts the water edge-on. Measured from the rowing animation's rig in Blender.
@@ -346,7 +353,7 @@ namespace VikingOarsmen
             Vector3 handOffset = new Vector3(0f, 0f, HandOffsetZ);
             model.localPosition = handOffset;
             model.localRotation = Quaternion.identity;
-            AddBackAttach(itemPrefab.transform, attach, model, kind.BackOffsetZ);
+            AddBackAttach(itemPrefab.transform, attach, model, kind);
 
             BoxCollider collider = attach.GetComponentInChildren<BoxCollider>(true);
             if (collider != null)
@@ -389,7 +396,7 @@ namespace VikingOarsmen
         /// hand's "attach") and zeroes its local position on the back joint, so the offset that keeps the
         /// long oar off the ground has to live on the model inside it.
         /// </summary>
-        private static void AddBackAttach(Transform itemRoot, Transform attach, Transform model, float backOffsetZ)
+        private static void AddBackAttach(Transform itemRoot, Transform attach, Transform model, OarKind kind)
         {
             GameObject attachBack = new GameObject("attach_back");
             // Inactive like any attach in the prefab: VisEquipment activates its own instance, and an
@@ -403,7 +410,9 @@ namespace VikingOarsmen
 
             Transform backModel = Object.Instantiate(model, attachBack.transform, false);
             backModel.name = model.name;
-            backModel.localPosition = new Vector3(0f, 0f, backOffsetZ);
+            // VisEquipment resets attach_back to the bone's own rotation, so the turn goes on the model.
+            backModel.localPosition = kind.BackPosition;
+            backModel.localRotation = kind.BackRotation;
         }
     }
 }
