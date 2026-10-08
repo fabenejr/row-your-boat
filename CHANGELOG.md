@@ -12,8 +12,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 - A rowing bench on the raft, at the front of its left side ahead of the mast, so one crew member can row
   while another steers. Only players with the mod see it.
-- Rowers sit closer to the gunwale and lean out over it on the Longship and the Drakkar, so the blade reaches
-  the water from their benches.
+- Rowers sit closer to the gunwale and lean out over it on the Longship, so the blade reaches the water from
+  its benches.
 
 ### Fixed
 
