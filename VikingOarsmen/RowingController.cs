@@ -21,6 +21,9 @@ namespace VikingOarsmen
         // ZDO key holding the rower's own effective gear (RowingGear), synced the same way as the ship above.
         private const string RowingGearKey = "VikingOarsmen_Gear";
 
+        // Chair.m_name of the ships' mast and prow, where the player holds on standing (benches are "$piece_stool").
+        private const string HoldfastName = "$ship_holdfast";
+
         // Gear the player has selected with W/S, kept even while stamina suspends its thrust (see
         // ResolveEffectiveGear) so the boost resumes on its own once stamina allows, without re-pressing.
         private static RowingGear s_desiredGear = RowingGear.Stop;
@@ -167,7 +170,8 @@ namespace VikingOarsmen
 
         /// <summary>
         /// True while the player sits on one of the ship's benches. Taking the helm also attaches the
-        /// player to the ship, but the helmsman is steering and can't row.
+        /// player to the ship, but the helmsman is steering and can't row; holding on to the mast or the
+        /// prow is a Chair too, but the player stands there.
         /// </summary>
         private static bool IsOnBench(Player player)
         {
@@ -177,7 +181,8 @@ namespace VikingOarsmen
             }
 
             Transform seat = player.GetAttachPoint();
-            return seat != null && seat.GetComponentInParent<Chair>() != null;
+            Chair chair = seat != null ? seat.GetComponentInParent<Chair>() : null;
+            return chair != null && chair.m_name != HoldfastName;
         }
 
         /// <summary>
