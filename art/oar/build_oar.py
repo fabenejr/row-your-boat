@@ -2,9 +2,13 @@
 Builds the Viking Oarsmen rowing oar in Blender (low-poly, Valheim style) and exports it.
 
 Run headless from the repo root:
-    blender -b --python art/oar/build_oar.py
+    blender -b --python art/oar/build_oar.py                 # the oar
+    blender -b --python art/oar/build_oar.py -- drakkar      # the Drakkar oar
 
-Outputs (next to this script): oar.blend, oar.fbx, oar_d.png (diffuse texture).
+Outputs: art/oar/oar.blend, oar.fbx, oar_d.png (diffuse texture), or the same for the Drakkar oar in
+art/drakkar_oar/ (drakkar_oar.*). The Drakkar oar is the same design with the shaft twice as long and the
+blade 1.2x as long (the Drakkar's benches sit far above the water), painted after the Drakkar's hull:
+dark grained wood, iron fittings with ochre trim, dragon scales at the blade neck, pale planks on the blade.
 
 Conventions (see VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md):
 - 1 Blender unit = 1 m.
@@ -17,6 +21,7 @@ Conventions (see VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md):
 
 import math
 import os
+import sys
 
 import bmesh
 import bpy
@@ -25,6 +30,14 @@ from mathutils import Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SIDES = 8
+
+VARIANT = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv[:-1] else "oar"
+VARIANTS = {
+    # out dir, file/texture name, mesh name, shaft scale, blade scale, texture height
+    "oar": (HERE, "oar", "Oar", 1.0, 1.0, 512),
+    "drakkar": (os.path.join(os.path.dirname(HERE), "drakkar_oar"), "drakkar_oar", "DrakkarOar", 2.0, 1.2, 1024),
+}
+OUT_DIR, NAME, MESH_NAME, SHAFT_SCALE, BLADE_SCALE, TEX_H = VARIANTS[VARIANT]
 
 # Distances along the shaft from the upper grip, as designed (+ toward the blade). The whole oar is then
 # stretched along the shaft to LENGTH (tip to tip) without changing its thickness; see to_blender.
@@ -67,10 +80,28 @@ PROFILE = [
     (BLADE_TIP, 0.010, 0.008, "wood"),
 ]
 
+# The stretch is the oar's, so a variant's extra length is real length, not a rescale of the same oar.
+STRETCH = LENGTH / (PROFILE[-1][0] - PROFILE[0][0] + 2 * CAP)
+
+
+def lengthen(s):
+    """Design distance -> the variant's: the shaft (up to the lashing) and the blade (past it) scale on
+    their own; the knob and the lashing keep their size."""
+    if s <= 0:
+        return s
+    if s <= LASH_START:
+        return s * SHAFT_SCALE
+    neck = LASH_START * SHAFT_SCALE + (min(s, LASH_END) - LASH_START)
+    return neck + max(s - LASH_END, 0) * BLADE_SCALE
+
+
+# GRIP_BOTTOM stays put: the rowing animation holds the oar there, whatever its length.
+PROFILE = [(lengthen(s), w, t, m) for s, w, t, m in PROFILE]
+FULCRUM, LASH_START, LASH_END, BLADE_TIP = (lengthen(s) for s in (FULCRUM, LASH_START, LASH_END, BLADE_TIP))
+
 # Texture layout: U = around the section (0..1), V = along the oar, mapped linearly from S_MIN..S_MAX.
 S_MIN, S_MAX = PROFILE[0][0], PROFILE[-1][0]
-STRETCH = LENGTH / (S_MAX - S_MIN + 2 * CAP)
-TEX_W, TEX_H = 64, 512
+TEX_W = 64
 
 
 def v_of(s):
@@ -98,11 +129,11 @@ def section(half_w, half_t, s):
 
 
 def build_mesh():
-    mesh = bpy.data.meshes.new("Oar")
-    obj = bpy.data.objects.new("Oar", mesh)
+    mesh = bpy.data.meshes.new(MESH_NAME)
+    obj = bpy.data.objects.new(MESH_NAME, mesh)
     bpy.context.collection.objects.link(obj)
 
-    wood = make_material("oar_wood")
+    wood = make_material(f"{NAME}_wood")
     obj.data.materials.append(wood)
     mat_index = {"wood": 0, "rope": 0}  # one material, rope is painted in the texture
 
@@ -144,13 +175,25 @@ def build_mesh():
 
 
 def paint_texture():
-    """Small hand-painted-looking wood texture: dark knob band, grain on the shaft,
-    laminated stripes down the blade, rope turns at the neck."""
     rng = np.random.default_rng(7)
     u = (np.arange(TEX_W) + 0.5) / TEX_W
     v = (np.arange(TEX_H) + 0.5) / TEX_H
     U, V = np.meshgrid(u, v)
     S = S_MIN + V * (S_MAX - S_MIN)
+    img = (paint_drakkar if VARIANT == "drakkar" else paint_oar)(U, S, rng)
+
+    image = bpy.data.images.new(f"{NAME}_d", TEX_W, TEX_H, alpha=False)
+    rgba = np.concatenate([img, np.ones((TEX_H, TEX_W, 1))], axis=2)
+    image.pixels.foreach_set(rgba.astype(np.float32).ravel())
+    image.filepath_raw = os.path.join(OUT_DIR, f"{NAME}_d.png")
+    image.file_format = "PNG"
+    image.save()
+    return image
+
+
+def paint_oar(U, S, rng):
+    """Small hand-painted-looking wood texture: dark knob band, grain on the shaft,
+    laminated stripes down the blade, rope turns at the neck."""
 
     light = np.array([0.62, 0.42, 0.24])
     dark = np.array([0.33, 0.20, 0.11])
@@ -186,15 +229,66 @@ def paint_texture():
 
     # paint noise, kept soft so it reads like Valheim's blurry hand-painted textures
     img *= (1 + rng.normal(0, 0.03, (TEX_H, TEX_W)))[..., None]
-    img = np.clip(img, 0, 1)
+    return np.clip(img, 0, 1)
 
-    image = bpy.data.images.new("oar_d", TEX_W, TEX_H, alpha=False)
-    rgba = np.concatenate([img, np.ones((TEX_H, TEX_W, 1))], axis=2)
-    image.pixels.foreach_set(rgba.astype(np.float32).ravel())
-    image.filepath_raw = os.path.join(HERE, "oar_d.png")
-    image.file_format = "PNG"
-    image.save()
-    return image
+
+def paint_drakkar(U, S, rng):
+    """The Drakkar's look (colors sampled from its hull): dark reddish wood with sketched grain lines,
+    iron knob and neck bands with ochre trim, dark green dragon scales at the blade neck, pale weathered
+    planks down the rest of the blade."""
+    dark_wood = np.array([0.29, 0.19, 0.13])
+    pale_wood = np.array([0.50, 0.41, 0.29])
+    iron = np.array([0.39, 0.38, 0.39])
+    ochre = np.array([0.66, 0.45, 0.22])
+    scale_green = np.array([0.08, 0.11, 0.08])
+
+    img = np.ones(U.shape + (3,)) * dark_wood
+    # sketched grain: thin dark wavy lines along the shaft, like the hull's drawn planks
+    for k, phase in ((5, 0.0), (7, 1.7), (11, 3.1)):
+        wave = np.sin(U * 2 * math.pi * k + np.sin(S * 2.3 + phase) * 1.5 + phase)
+        img *= (1 - 0.35 * (wave > 0.985))[..., None]
+    img *= (0.92 + 0.08 * np.sin(S * 1.7 + U * 6.0))[..., None]
+
+    # blade: pale planks with dark seams between laminated strips, darker toward the edges
+    blade = S > LASH_END
+    planks = np.ones(U.shape + (3,)) * pale_wood
+    planks *= (0.9 + 0.1 * np.sin(U * 2 * math.pi * 12 + np.sin(S * 3.0)))[..., None]
+    for c in (0.25, 0.75):
+        d = np.abs(U - c)
+        for seam in (0.035, 0.09):
+            planks[np.abs(d - seam) < 0.006] *= 0.5
+        planks[d > 0.15] *= 0.85
+    img[blade] = planks[blade]
+
+    # dragon scales over the blade's neck: half-offset rows of round scales with dark rims
+    neck = blade & (S < LASH_END + 0.35 * (S_MAX - LASH_END))
+    rows, cols = 0.035, 1 / 16
+    row = np.floor((S - LASH_END) / rows)
+    cu = (U + 0.5 * cols * (row % 2)) / cols
+    du = (cu - np.floor(cu) - 0.5) * cols / rows
+    dv = (S - LASH_END) / rows - row
+    r = np.sqrt(du ** 2 + dv ** 2)
+    scales = scale_green[None, None, :] * (1.4 - 0.6 * r)[..., None]
+    scales[r > 0.85] = scale_green * 0.4
+    img[neck] = scales[neck]
+
+    # iron: pear knob cap and the neck bands (where the oar has its rope lashing), with ochre trim
+    knob = S < -0.03
+    img[knob] = iron * 0.85
+    bands = (S >= LASH_START) & (S <= LASH_END)
+    img[bands] = iron
+    for edge in (LASH_START, LASH_END):
+        img[np.abs(S - edge) < 0.012] = ochre
+    rivets = bands & (np.abs(np.mod(U * 8, 1) - 0.5) < 0.12) & (np.abs(S - (LASH_START + LASH_END) / 2) < 0.015)
+    img[rivets] = iron * 0.45
+
+    # wear: hands darken the grips a little
+    for g in (0.0, GRIP_BOTTOM):
+        w = np.exp(-((S - g) / 0.08) ** 2)
+        img *= (1 - 0.18 * w)[..., None]
+
+    img *= (1 + rng.normal(0, 0.03, U.shape))[..., None]
+    return np.clip(img, 0, 1)
 
 
 def make_material(name):
@@ -233,11 +327,12 @@ def main():
 
     tris = sum(len(p.vertices) - 2 for p in oar.data.polygons)
     dims = oar.dimensions
-    print(f"[oar] tris={tris} length={dims.y:.3f} m width={dims.x:.3f} m thickness={dims.z:.3f} m")
+    print(f"[{NAME}] tris={tris} length={dims.y:.3f} m width={dims.x:.3f} m thickness={dims.z:.3f} m")
 
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, "oar.blend"))
+    os.makedirs(OUT_DIR, exist_ok=True)
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT_DIR, f"{NAME}.blend"))
     bpy.ops.export_scene.fbx(
-        filepath=os.path.join(HERE, "oar.fbx"),
+        filepath=os.path.join(OUT_DIR, f"{NAME}.fbx"),
         object_types={"MESH", "EMPTY"},
         apply_scale_options="FBX_SCALE_UNITS",
         axis_forward="-Z",
