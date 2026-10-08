@@ -9,6 +9,7 @@ W/S shift gears just like the helm's rudder, and the more of the crew rows, the 
 - **Oar required:** craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon — it also works as one, based on the Club.
 - **Gear shifting:** sitting on a bench with the oar equipped puts you in neutral automatically. W/S step through reverse, neutral and gears 1–3, exactly like steering a ship, except it never turns.
 - **Crew-powered speed:** each rower adds thrust based on their gear (reverse and gears 1–3), so four rowers in gear 1 match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
+- **A bench on the raft:** one crew member can sit at the front of the raft and row while another steers.
 - **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
 - **Rowing animation:** the oar is a custom model held in both hands, and the rower sits facing the stern. The stroke is a real animation: the blade enters the water at the catch, the body pulls back through the drive, then the oar lifts out and swings forward. Stroke pace follows the gear, and `StrokeSpeed` scales it. The oar returns to a normal weapon grip when you get up.
 - **Splash:** the blade splashes, with sound, as it hits the water, using the game's own arrow-in-water effect.
@@ -43,7 +44,7 @@ and choose *Import local mod* in the manager.
 4. Getting up from the bench, dying or switching away from the oar stops rowing (and hides it) immediately.
 
 You can row with the sail up. The two forces add together.
-Only the crew on the benches row: whoever is at the helm steers. Ships without benches, like the raft, can't be rowed.
+Only the crew on the benches row: whoever is at the helm steers, and holding on to the mast or the prow doesn't row either. The raft has no bench of its own, so the mod adds one, at the front of its left side ahead of the mast, for one rower (only players with the mod see it).
 
 ### Quick test in single player
 
