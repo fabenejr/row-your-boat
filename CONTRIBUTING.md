@@ -44,9 +44,11 @@ the decompiled game code, which is the best way to see what a method does before
 | `OarItem.cs` | Registers the craftable oar item/weapon and its recipe via Jötunn |
 | `RowingGear.cs` | The `RowingGear` enum (mirrors `Ship.Speed`) |
 | `ShipRowingPatch.cs` | Harmony patches that add the mod's components to ships and players |
+| `RaftSeat.cs` | The extra rowing bench added to every raft |
 | `RowingController.cs` | Local input (gear shifting, stamina checks) and synced rowing/gear state |
 | `ShipRowing.cs` | Gear-weighted thrust applied by the ship owner |
 | `OarVisual.cs` | Per-player rowing visuals: animation, rowing grip, blade splash, facing the stern, gunwale for the gear indicator |
+| `ShipFit.cs` | Per-ship rower placement: slide towards the gunwale and lean out over it |
 | `RowerAnimation.cs` | Plays the rowing clips over the game's Animator (Playables), in step with the crew |
 | `ModAssets.cs` | Loads the embedded AssetBundle (oar model, rowing clips) |
 | `OarSwing.cs` | Slower swing animation when attacking with the oar |

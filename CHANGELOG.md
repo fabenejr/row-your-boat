@@ -8,6 +8,18 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+### Added
+
+- A rowing bench on the raft, at the front of its left side ahead of the mast, so one crew member can row
+  while another steers. Only players with the mod see it.
+- Rowers sit closer to the gunwale and lean out over it on the Longship, so the blade reaches the water from
+  its benches.
+
+### Fixed
+
+- On port-side benches the oar swung into the ship instead of over the side.
+- Holding on to the mast or the prow with the oar equipped no longer starts rowing.
+
 ## 3.0.0 - 2026-10-04
 
 ### Added
