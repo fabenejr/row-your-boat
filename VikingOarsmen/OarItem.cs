@@ -6,14 +6,76 @@ using UnityEngine;
 namespace VikingOarsmen
 {
     /// <summary>
-    /// Registers the rower's oar: a weapon cloned from the Club, craftable at a tier-1 workbench, that
-    /// gates rowing while equipped (see VikingOarsmen-Documents/Plano-Marchas-e-Remo.md, items D5/D6
-    /// for why stats mostly follow the Club as-is). The visual is our own oar model, loaded from the
-    /// AssetBundle embedded in this DLL.
+    /// Registers the rowers' oars: weapons cloned from the Club that gate rowing while equipped (see
+    /// VikingOarsmen-Documents/Plano-Marchas-e-Remo.md, items D5/D6 for why stats mostly follow the Club
+    /// as-is). The oar is crafted at a tier-1 workbench; the Drakkar Oar, long enough to reach the water from
+    /// the Drakkar's high benches (the only oar that rows it, see RowingController), at a level-2 one. Both
+    /// share the same stats; the visuals are our own models, loaded from the AssetBundle embedded in this DLL.
     /// </summary>
     internal static class OarItem
     {
-        internal const string PrefabName = "VikingOarsmen_Oar";
+        /// <summary>One kind of oar: its item, recipe and model.</summary>
+        private class OarKind
+        {
+            internal string PrefabName;
+            internal string ModelPrefab;
+            internal string Name;
+            internal string Description;
+            internal int StationLevel;
+            // Jötunn's own type, not a tuple: the game's runtime has no System.ValueTuple.
+            internal RequirementConfig[] Requirements;
+            internal float BackOffsetZ;
+
+            // Stats over the Club baseline; see the constants below for the oar's.
+            internal float Weight = OarItem.Weight;
+            internal float Durability = OarItem.Durability;
+            internal float Knockback = OarItem.Knockback;
+            internal float AttackStamina = OarItem.AttackStamina;
+
+            // Absolute attack range in meters; 0 = the Club's times RangeMultiplier.
+            internal float AttackRange;
+
+            // Blunt damage at quality 1 and at the highest quality, the levels in between spread evenly;
+            // 0 = the Club's own damage.
+            internal float Blunt;
+            internal float BluntMaxQuality;
+
+            // Read from the model's blade_tip empty when the item is created.
+            internal float BladeTipZ = DefaultBladeTipZ;
+        }
+
+        private static readonly OarKind s_oar = new OarKind
+        {
+            PrefabName = "VikingOarsmen_Oar",
+            ModelPrefab = "VikingOarsmen_Oar",
+            Name = "Oar",
+            Description = "A viking oar. Equip it and sit on a ship's bench to row.",
+            StationLevel = 1,
+            Requirements = new[] { new RequirementConfig("FineWood", 6) },
+            BackOffsetZ = BackOffsetZ,
+        };
+
+        private static readonly OarKind s_drakkarOar = new OarKind
+        {
+            PrefabName = "VikingOarsmen_DrakkarOar",
+            ModelPrefab = "VikingOarsmen_DrakkarOar",
+            Name = "Drakkar Oar",
+            Description = "A long oar for the Drakkar's high benches, the only one that reaches the water from them. " +
+                "Equip it and sit on a ship's bench to row.",
+            StationLevel = 2,
+            Requirements = new[] { new RequirementConfig("YggdrasilWood", 16), new RequirementConfig("Resin", 8) },
+            // The same middle of the oar on the back as the oar's: half its extra length further down.
+            BackOffsetZ = DrakkarBackOffsetZ,
+            Weight = 8f,
+            Durability = 90f,
+            Knockback = 300f,
+            AttackStamina = 15f,
+            AttackRange = 6f,
+            Blunt = 70f,
+            BluntMaxQuality = 90f,
+        };
+
+        private static readonly OarKind[] s_kinds = { s_oar, s_drakkarOar };
 
         // Overrides from the Club baseline (section 1.2 of the plan). Fields not listed here are left
         // exactly as the Club has them (anything undecided follows the Club by default, plan item D5).
@@ -38,17 +100,18 @@ namespace VikingOarsmen
         private const float HandOffsetZ = -0.4f;
 
         // Slides the oar along its shaft when sheathed on the back, so the blade doesn't go through the
-        // ground (tuned live with UnityExplorer).
+        // ground (tuned live with UnityExplorer). The Drakkar Oar is 1.87 m longer: half of that further down.
         private const float BackOffsetZ = -0.8708f;
+        private const float DrakkarBackOffsetZ = -1.8f;
 
         // While rowing the oar is held near the end of its handle and turned a quarter around its shaft, so
         // the blade cuts the water edge-on. Measured from the rowing animation's rig in Blender.
         private const float RowingGripZ = -0.08f;
         private const float RowingGripRoll = -90f;
 
-        // Tip of the blade along the model's shaft (+Z), from the oar's grip_top origin (meters; the
-        // blade_tip empty in art/oar/oar.blend).
-        internal const float BladeTipZ = 2.8f;
+        // Tip of the oar's blade along the model's shaft (+Z), from its grip_top origin (meters; the blade_tip
+        // empty in art/oar/oar.blend), until the model's own is read.
+        private const float DefaultBladeTipZ = 2.8f;
 
         /// <summary>
         /// Switches the oar held in a hand (VisEquipment's instance of the item's "attach") between the
@@ -79,9 +142,43 @@ namespace VikingOarsmen
             }
         }
 
+        /// <summary>True for either oar.</summary>
         internal static bool IsOar(ItemDrop.ItemData item)
         {
-            return item != null && item.m_dropPrefab != null && item.m_dropPrefab.name == PrefabName;
+            return KindOf(item) != null;
+        }
+
+        /// <summary>True for the Drakkar Oar only.</summary>
+        internal static bool IsDrakkarOar(ItemDrop.ItemData item)
+        {
+            return KindOf(item) == s_drakkarOar;
+        }
+
+        /// <summary>
+        /// Tip of the blade along the held oar model's shaft (+Z), from its grip_top origin, in meters.
+        /// </summary>
+        internal static float BladeTipZ(ItemDrop.ItemData item)
+        {
+            OarKind kind = KindOf(item);
+            return kind != null ? kind.BladeTipZ : DefaultBladeTipZ;
+        }
+
+        private static OarKind KindOf(ItemDrop.ItemData item)
+        {
+            if (item == null || item.m_dropPrefab == null)
+            {
+                return null;
+            }
+
+            string name = item.m_dropPrefab.name;
+            foreach (OarKind kind in s_kinds)
+            {
+                if (kind.PrefabName == name)
+                {
+                    return kind;
+                }
+            }
+            return null;
         }
 
         internal static void Setup()
@@ -93,36 +190,51 @@ namespace VikingOarsmen
         {
             PrefabManager.OnVanillaPrefabsAvailable -= Create;
 
+            foreach (OarKind kind in s_kinds)
+            {
+                Create(kind);
+            }
+        }
+
+        private static void Create(OarKind kind)
+        {
             ItemConfig config = new ItemConfig
             {
-                Name = "Oar",
-                Description = "A viking oar. Equip it and sit on a ship's bench to row.",
+                Name = kind.Name,
+                Description = kind.Description,
                 CraftingStation = CraftingStations.Workbench,
-                MinStationLevel = 1,
-                Weight = Weight,
+                MinStationLevel = kind.StationLevel,
+                Weight = kind.Weight,
             };
-            config.AddRequirement("FineWood", 6);
+            foreach (RequirementConfig requirement in kind.Requirements)
+            {
+                config.AddRequirement(requirement);
+            }
 
-            CustomItem oar = new CustomItem(PrefabName, "Club", config);
+            CustomItem oar = new CustomItem(kind.PrefabName, "Club", config);
             if (oar.ItemPrefab == null)
             {
-                Plugin.Log.LogError("Failed to create the oar item: couldn't clone 'Club' (not loaded yet?).");
+                Plugin.Log.LogError($"Failed to create the {kind.Name} item: couldn't clone 'Club' (not loaded yet?).");
                 return;
             }
 
             ItemDrop.ItemData.SharedData shared = oar.ItemDrop.m_itemData.m_shared;
-            shared.m_maxDurability = Durability;
-            shared.m_attackForce = Knockback;
+            shared.m_maxDurability = kind.Durability;
+            shared.m_attackForce = kind.Knockback;
+            if (kind.Blunt > 0f)
+            {
+                SetBluntDamage(shared, kind.Blunt, kind.BluntMaxQuality);
+            }
             shared.m_backstabBonus = BackstabBonus;
             MakeTwoHanded(shared);
 
             Attack attack = shared.m_attack;
-            attack.m_attackStamina = AttackStamina;
+            attack.m_attackStamina = kind.AttackStamina;
             attack.m_attackAdrenaline = AttackAdrenaline;
             attack.m_staggerMultiplier = StaggerMultiplier;
-            attack.m_attackRange *= RangeMultiplier;
+            attack.m_attackRange = kind.AttackRange > 0f ? kind.AttackRange : attack.m_attackRange * RangeMultiplier;
 
-            ApplyOarVisual(oar.ItemPrefab);
+            ApplyOarVisual(oar.ItemPrefab, kind);
 
             if (shared.m_icons == null || shared.m_icons.Length == 0)
             {
@@ -135,12 +247,26 @@ namespace VikingOarsmen
 
             if (!ItemManager.Instance.AddItem(oar))
             {
-                Plugin.Log.LogError("Failed to register the oar item with Jötunn.");
+                Plugin.Log.LogError($"Failed to register the {kind.Name} item with Jötunn.");
                 return;
             }
 
-            Plugin.Log.LogInfo($"Oar item registered: range {attack.m_attackRange:F2}, swing speed x{SwingSpeed:F2}, " +
-                $"durability {shared.m_maxDurability:F0}, knockback {shared.m_attackForce:F0}.");
+            Plugin.Log.LogInfo($"{kind.Name} item registered: range {attack.m_attackRange:F2}, swing speed x{SwingSpeed:F2}, " +
+                $"durability {shared.m_maxDurability:F0}, knockback {shared.m_attackForce:F0}, " +
+                $"blunt {shared.m_damages.m_blunt:F0} (+{shared.m_damagesPerLevel.m_blunt:F1}/level, max quality {shared.m_maxQuality}).");
+        }
+
+        /// <summary>
+        /// Blunt damage only, rising evenly with each upgrade from quality 1 to the item's highest quality.
+        /// </summary>
+        private static void SetBluntDamage(ItemDrop.ItemData.SharedData shared, float blunt, float bluntMaxQuality)
+        {
+            int upgrades = Mathf.Max(shared.m_maxQuality - 1, 0);
+            shared.m_damages = new HitData.DamageTypes { m_blunt = blunt };
+            shared.m_damagesPerLevel = new HitData.DamageTypes
+            {
+                m_blunt = upgrades > 0 ? (bluntMaxQuality - blunt) / upgrades : 0f,
+            };
         }
 
         /// <summary>
@@ -184,15 +310,16 @@ namespace VikingOarsmen
         /// hierarchy (attach/model, attach/collider, attach/equiped/trail, UpgraderGlow) so everything the
         /// game wires to those names keeps working. Only the mesh, material, collider and trail change.
         /// </summary>
-        private static void ApplyOarVisual(GameObject itemPrefab)
+        private static void ApplyOarVisual(GameObject itemPrefab, OarKind kind)
         {
-            Transform source = ModAssets.OarPrefab != null ? ModAssets.OarPrefab.transform : null;
+            GameObject bundlePrefab = ModAssets.LoadPrefab(kind.ModelPrefab);
+            Transform source = bundlePrefab != null ? bundlePrefab.transform : null;
             Transform sourceAttach = source != null ? source.Find("attach") : null;
             Transform attach = itemPrefab.transform.Find("attach");
             Transform model = attach != null ? attach.Find("model") : null;
             if (sourceAttach == null || model == null)
             {
-                Plugin.Log.LogWarning("Oar item: bundle prefab or the Club's attach/model not found; keeping the Club's own mesh.");
+                Plugin.Log.LogWarning($"{kind.Name} item: bundle prefab or the Club's attach/model not found; keeping the Club's own mesh.");
                 return;
             }
 
@@ -212,7 +339,7 @@ namespace VikingOarsmen
             Vector3 handOffset = new Vector3(0f, 0f, HandOffsetZ);
             model.localPosition = handOffset;
             model.localRotation = Quaternion.identity;
-            AddBackAttach(itemPrefab.transform, attach, model);
+            AddBackAttach(itemPrefab.transform, attach, model, kind.BackOffsetZ);
 
             BoxCollider collider = attach.GetComponentInChildren<BoxCollider>(true);
             if (collider != null)
@@ -241,7 +368,13 @@ namespace VikingOarsmen
                 trailTip.localPosition = sourceAttach.Find("blade_tip").localPosition + handOffset;
             }
 
-            Plugin.Log.LogInfo($"Oar item: model '{mesh.name}' ({mesh.bounds.size.z:F2} m) from the bundle, shader '{material.shader.name}'.");
+            Transform bladeTip = sourceAttach.Find("blade_tip");
+            if (bladeTip != null)
+            {
+                kind.BladeTipZ = bladeTip.localPosition.z;
+            }
+
+            Plugin.Log.LogInfo($"{kind.Name} item: model '{mesh.name}' ({mesh.bounds.size.z:F2} m) from the bundle, shader '{material.shader.name}'.");
         }
 
         /// <summary>
@@ -249,7 +382,7 @@ namespace VikingOarsmen
         /// hand's "attach") and zeroes its local position on the back joint, so the offset that keeps the
         /// long oar off the ground has to live on the model inside it.
         /// </summary>
-        private static void AddBackAttach(Transform itemRoot, Transform attach, Transform model)
+        private static void AddBackAttach(Transform itemRoot, Transform attach, Transform model, float backOffsetZ)
         {
             GameObject attachBack = new GameObject("attach_back");
             // Inactive like any attach in the prefab: VisEquipment activates its own instance, and an
@@ -263,7 +396,7 @@ namespace VikingOarsmen
 
             Transform backModel = Object.Instantiate(model, attachBack.transform, false);
             backModel.name = model.name;
-            backModel.localPosition = new Vector3(0f, 0f, BackOffsetZ);
+            backModel.localPosition = new Vector3(0f, 0f, backOffsetZ);
         }
     }
 }

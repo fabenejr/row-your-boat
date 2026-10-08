@@ -139,7 +139,7 @@ namespace VikingOarsmen
                 return;
             }
 
-            Vector3 tip = model.TransformPoint(0f, 0f, OarItem.BladeTipZ);
+            Vector3 tip = model.TransformPoint(0f, 0f, OarItem.BladeTipZ(_player.GetCurrentWeapon()));
             float water = WaterLevel(tip);
             bool wet = tip.y < water;
             if (wet && !_bladeWet && _bladeTracked)
