@@ -10,7 +10,8 @@ namespace VikingOarsmen
     /// VikingOarsmen-Documents/Plano-Marchas-e-Remo.md, items D5/D6 for why stats mostly follow the Club
     /// as-is). The oar is crafted at a tier-1 workbench; the Drakkar Oar, long enough to reach the water from
     /// the Drakkar's high benches (the only oar that rows it, see RowingController), at a level-2 one. Both
-    /// share the same stats; the visuals are our own models, loaded from the AssetBundle embedded in this DLL.
+    /// share the same stats; the visuals are our own models and icons, loaded from the AssetBundle embedded in
+    /// this DLL.
     /// </summary>
     internal static class OarItem
     {
@@ -19,6 +20,7 @@ namespace VikingOarsmen
         {
             internal string PrefabName;
             internal string ModelPrefab;
+            internal string Icon;
             internal string Name;
             internal string Description;
             internal int StationLevel;
@@ -48,6 +50,7 @@ namespace VikingOarsmen
         {
             PrefabName = "VikingOarsmen_Oar",
             ModelPrefab = "VikingOarsmen_Oar",
+            Icon = "oar_icon",
             Name = "Oar",
             Description = "A viking oar. Equip it and sit on a ship's bench to row.",
             StationLevel = 1,
@@ -59,6 +62,7 @@ namespace VikingOarsmen
         {
             PrefabName = "VikingOarsmen_DrakkarOar",
             ModelPrefab = "VikingOarsmen_DrakkarOar",
+            Icon = "drakkar_oar_icon",
             Name = "Drakkar Oar",
             Description = "A long oar for the Drakkar's high benches, the only one that reaches the water from them. " +
                 "Equip it and sit on a ship's bench to row.",
@@ -236,13 +240,16 @@ namespace VikingOarsmen
 
             ApplyOarVisual(oar.ItemPrefab, kind);
 
-            if (shared.m_icons == null || shared.m_icons.Length == 0)
+            // The clone still carries the Club's icon, so ours always replaces it.
+            Sprite icon = ModAssets.LoadSprite(kind.Icon);
+            if (icon == null)
             {
-                Sprite icon = RenderManager.Instance.Render(oar.ItemPrefab);
-                if (icon != null)
-                {
-                    shared.m_icons = new[] { icon };
-                }
+                Plugin.Log.LogWarning($"{kind.Name} item: icon '{kind.Icon}' not in the bundle; rendering one from the model.");
+                icon = RenderManager.Instance.Render(oar.ItemPrefab);
+            }
+            if (icon != null)
+            {
+                shared.m_icons = new[] { icon };
             }
 
             if (!ItemManager.Instance.AddItem(oar))

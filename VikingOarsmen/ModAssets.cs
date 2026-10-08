@@ -7,7 +7,8 @@ namespace VikingOarsmen
 {
     /// <summary>
     /// The mod's own assets, from the AssetBundle embedded in this DLL (built in Unity, see
-    /// VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md): the oar models and the rowing animations.
+    /// VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md): the oar models and icons and the rowing
+    /// animations.
     /// Loaded once, on first use, and kept loaded for the whole session.
     /// </summary>
     internal static class ModAssets
@@ -31,6 +32,15 @@ namespace VikingOarsmen
         {
             Load();
             return s_bundle != null ? s_bundle.LoadAsset<GameObject>(name) : null;
+        }
+
+        /// <summary>
+        /// An oar's inventory icon (see OarItem), or null if the bundle doesn't have it.
+        /// </summary>
+        internal static Sprite LoadSprite(string name)
+        {
+            Load();
+            return s_bundle != null ? s_bundle.LoadAsset<Sprite>(name) : null;
         }
 
         /// <summary>

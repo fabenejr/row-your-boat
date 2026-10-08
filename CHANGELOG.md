@@ -19,6 +19,10 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
   it to row; it rows any other ship too. As a weapon it hits harder than the oar: 70 blunt damage (90 at the
   highest quality), 300 knockback, 6 m reach, 15 stamina per swing, 90 durability, weight 8.
 
+### Changed
+
+- The oar and the Drakkar Oar have their own inventory icons instead of the club's.
+
 ### Fixed
 
 - On port-side benches the oar swung into the ship instead of over the side.

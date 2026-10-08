@@ -50,13 +50,13 @@ the decompiled game code, which is the best way to see what a method does before
 | `OarVisual.cs` | Per-player rowing visuals: animation, rowing grip, blade splash, facing the stern, gunwale for the gear indicator |
 | `ShipFit.cs` | Per-ship rower placement: slide towards the gunwale and lean out over it |
 | `RowerAnimation.cs` | Plays the rowing clips over the game's Animator (Playables), in step with the crew |
-| `ModAssets.cs` | Loads the embedded AssetBundle (oar models, rowing clips) |
+| `ModAssets.cs` | Loads the embedded AssetBundle (oar models and icons, rowing clips) |
 | `OarSwing.cs` | Slower swing animation when attacking with the oar |
 | `OarSplash.cs` | Splash and sound when the blade hits the water (reused from arrows) |
 | `GearHud.cs` | The rower's gear indicator, cloned from the vanilla ship HUD |
-| `VikingOarsmen/AssetBundles/` | The AssetBundle (oar models, rowing clips) built in Unity and embedded in the DLL |
-| `art/oar/` | Blender sources of the oar model and animation rig, plus the script that builds both oars |
-| `art/drakkar_oar/` | The Drakkar Oar model, built by `art/oar/build_oar.py -- drakkar` |
+| `VikingOarsmen/AssetBundles/` | The AssetBundle (oar models and icons, rowing clips) built in Unity and embedded in the DLL |
+| `art/oar/` | Blender sources of the oar model and animation rig, its inventory icon, plus the script that builds both oars |
+| `art/drakkar_oar/` | The Drakkar Oar model, built by `art/oar/build_oar.py -- drakkar`, and its inventory icon |
 | `VikingOarsmen-Documents/` | Design notes (Obsidian vault): plan, steering decisions and the asset pipeline |
 | `package/` | Thunderstore manifest and icon |
 | `scripts/release.ps1` | Release packaging (see [RELEASING.md](RELEASING.md)) |
