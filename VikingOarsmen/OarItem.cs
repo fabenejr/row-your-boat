@@ -50,17 +50,16 @@ namespace VikingOarsmen
         // blade_tip empty in art/oar/oar.blend).
         internal const float BladeTipZ = 2.8f;
 
-        // Rowing on the other side (mirrored clips) the right hand takes the left hand's place on the shaft,
-        // mirrored, so the oar sits in it differently. Computed in Blender from the same rig.
-        private static readonly Vector3 s_mirroredGripPosition = new Vector3(-0.0782f, 0.0071f, 0.2411f);
-        private static readonly Quaternion s_mirroredGripRotation = new Quaternion(0.73589f, 0.65545f, 0.11039f, 0.12911f);
-
         /// <summary>
         /// Switches the oar held in a hand (VisEquipment's instance of the item's "attach") between the
         /// weapon grip and the rowing grip. Only the model moves: the rowing clips carry the hands.
         /// </summary>
-        /// <param name="mirrored">Rowing with the mirrored clips (see ModAssets.RowIdle).</param>
-        internal static void SetRowingGrip(GameObject handInstance, bool rowing, bool mirrored)
+        /// <remarks>
+        /// The same grip fits either hand: the game's LeftHand_Attach is the mirror image of RightHand_Attach
+        /// and the oar is symmetric across its blade, so the mirrored clips just hang the oar from the left hand
+        /// (see OarVisual.UpdateGrip).
+        /// </remarks>
+        internal static void SetRowingGrip(GameObject handInstance, bool rowing)
         {
             Transform model = handInstance != null ? handInstance.transform.Find("model") : null;
             if (model == null)
@@ -72,11 +71,6 @@ namespace VikingOarsmen
             {
                 model.localPosition = new Vector3(0f, 0f, HandOffsetZ);
                 model.localRotation = Quaternion.identity;
-            }
-            else if (mirrored)
-            {
-                model.localPosition = s_mirroredGripPosition;
-                model.localRotation = s_mirroredGripRotation;
             }
             else
             {

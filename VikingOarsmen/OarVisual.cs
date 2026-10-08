@@ -60,7 +60,8 @@ namespace VikingOarsmen
         // The visual model turned to face the stern, so it can be turned back when rowing stops.
         private Transform _turnedVisual;
 
-        // The hand-held oar last put in the rowing grip, and for which side, so it is set again only on change.
+        // The hand-held oar last put in the rowing grip, and whether it was moved to the left hand (mirrored
+        // clips), so it is set again only on change.
         private GameObject _rowingGripInstance;
         private bool _rowingGripMirrored;
 
@@ -153,6 +154,12 @@ namespace VikingOarsmen
         /// Rowing grip on the oar in the hand while rowing, weapon grip otherwise. VisEquipment rebuilds the
         /// hand-held instance whenever the equipment changes, so it is checked every frame.
         /// </summary>
+        /// <remarks>
+        /// The oar hangs from the hand at the top of its handle: the right hand in the authored clips, the
+        /// left one in the mirrored clips. Left in the right hand there, it would follow the lower hand, whose
+        /// wrist the Humanoid retargeting doesn't reproduce closely enough, and the blade swings into the ship.
+        /// VisEquipment only ever destroys the instance through its own reference, so the move is safe.
+        /// </remarks>
         private void UpdateGrip(bool rowing, bool mirrored)
         {
             GameObject held = s_rightItemInstanceField != null && _visEquipment != null
@@ -162,7 +169,12 @@ namespace VikingOarsmen
             {
                 if (held != _rowingGripInstance || mirrored != _rowingGripMirrored)
                 {
-                    OarItem.SetRowingGrip(held, true, mirrored);
+                    OarItem.SetRowingGrip(held, true);
+                    Transform hand = mirrored ? _visEquipment.m_leftHand : _visEquipment.m_rightHand;
+                    if (hand != null)
+                    {
+                        held.transform.SetParent(hand, false);
+                    }
                     _rowingGripInstance = held;
                     _rowingGripMirrored = mirrored;
                 }
@@ -171,9 +183,21 @@ namespace VikingOarsmen
 
             if (_rowingGripInstance != null)
             {
-                OarItem.SetRowingGrip(_rowingGripInstance, false, false);
+                ReleaseGrip(_rowingGripInstance);
             }
             _rowingGripInstance = null;
+        }
+
+        /// <summary>
+        /// Back to the weapon grip, in the right hand where VisEquipment put it.
+        /// </summary>
+        private void ReleaseGrip(GameObject instance)
+        {
+            OarItem.SetRowingGrip(instance, false);
+            if (_visEquipment != null && _visEquipment.m_rightHand != null)
+            {
+                instance.transform.SetParent(_visEquipment.m_rightHand, false);
+            }
         }
 
         /// <summary>
