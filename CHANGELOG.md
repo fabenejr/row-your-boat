@@ -14,6 +14,10 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
   while another steers. Only players with the mod see it.
 - Rowers sit closer to the gunwale and lean out over it on the Longship, so the blade reaches the water from
   its benches.
+- The Drakkar Oar, crafted at a level-2 workbench (16 Yggdrasil Wood, 8 Resin): a longer oar, painted after
+  the Drakkar. It is the only oar that reaches the water from the Drakkar's benches, so the Drakkar now needs
+  it to row; it rows any other ship too. As a weapon it hits harder than the oar: 70 blunt damage (90 at the
+  highest quality), 300 knockback, 6 m reach, 15 stamina per swing, 90 durability, weight 8.
 
 ### Fixed
 

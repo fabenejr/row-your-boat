@@ -21,6 +21,9 @@ namespace VikingOarsmen
         // ZDO key holding the rower's own effective gear (RowingGear), synced the same way as the ship above.
         private const string RowingGearKey = "VikingOarsmen_Gear";
 
+        // The Drakkar's prefab: its benches sit too high for the oar, only the Drakkar Oar reaches the water.
+        private const string DrakkarPrefab = "VikingShip_Ashlands";
+
         // Chair.m_name of the ships' mast and prow, where the player holds on standing (benches are "$piece_stool").
         private const string HoldfastName = "$ship_holdfast";
 
@@ -48,17 +51,19 @@ namespace VikingOarsmen
 
             Ship ship = Ship.GetLocalShip();
             bool onBench = ship != null && IsOnBench(player) && !player.IsDead();
-            bool hasOar = HasOarEquipped(player);
+            bool hasOar = HasOarFor(player, ship);
             bool inputAllowed = CanTakeGameplayInput();
 
             if (!onBench || !hasOar)
             {
                 // Hint why W/S does nothing, same spirit as the old "sit on a bench" message, but only
-                // when the player is actually trying: seated, without the oar, pressing a rowing key.
+                // when the player is actually trying: seated, without the right oar, pressing a rowing key.
                 if (onBench && !hasOar && inputAllowed
                     && (ZInput.GetButtonDown("Forward") || ZInput.GetButtonDown("Backward")))
                 {
-                    player.Message(MessageHud.MessageType.Center, "Equip the oar to row.");
+                    player.Message(MessageHud.MessageType.Center, OarItem.IsOar(player.GetCurrentWeapon())
+                        ? "This oar can't reach the water from here. Equip the Drakkar Oar."
+                        : "Equip the oar to row.");
                 }
 
                 s_desiredGear = RowingGear.Stop;
@@ -165,7 +170,7 @@ namespace VikingOarsmen
         internal static bool IsRowingMode(Player player)
         {
             Ship ship = Ship.GetLocalShip();
-            return ship != null && !player.IsDead() && IsOnBench(player) && HasOarEquipped(player);
+            return ship != null && !player.IsDead() && IsOnBench(player) && HasOarFor(player, ship);
         }
 
         /// <summary>
@@ -186,11 +191,14 @@ namespace VikingOarsmen
         }
 
         /// <summary>
-        /// True while the player's current weapon is the oar (see OarItem) — required to row.
+        /// True while the player's current weapon is an oar that rows this ship (see OarItem) — required to
+        /// row: the Drakkar Oar on the Drakkar, either oar on any other ship.
         /// </summary>
-        private static bool HasOarEquipped(Player player)
+        private static bool HasOarFor(Player player, Ship ship)
         {
-            return OarItem.IsOar(player.GetCurrentWeapon());
+            ItemDrop.ItemData weapon = player.GetCurrentWeapon();
+            bool drakkar = ship != null && Utils.GetPrefabName(ship.gameObject) == DrakkarPrefab;
+            return drakkar ? OarItem.IsDrakkarOar(weapon) : OarItem.IsOar(weapon);
         }
 
         /// <summary>

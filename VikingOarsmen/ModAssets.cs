@@ -7,31 +7,30 @@ namespace VikingOarsmen
 {
     /// <summary>
     /// The mod's own assets, from the AssetBundle embedded in this DLL (built in Unity, see
-    /// VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md): the oar model and the rowing animations.
+    /// VikingOarsmen-Documents/Pipeline-Asset-e-Animacao.md): the oar models and the rowing animations.
     /// Loaded once, on first use, and kept loaded for the whole session.
     /// </summary>
     internal static class ModAssets
     {
         private const string BundleName = "vikingoarsmen";
-        private const string OarPrefabName = "VikingOarsmen_Oar";
         private const string RowIdleName = "row_idle";
         private const string RowStrokeName = "row_stroke";
         private const string MirrorSuffix = "_mirror";
 
         private static bool s_loaded;
-        private static GameObject s_oarPrefab;
+        private static AssetBundle s_bundle;
         private static AnimationClip s_rowIdle;
         private static AnimationClip s_rowStroke;
         private static AnimationClip s_rowIdleMirror;
         private static AnimationClip s_rowStrokeMirror;
 
-        internal static GameObject OarPrefab
+        /// <summary>
+        /// An oar model's prefab (see OarItem), or null if the bundle doesn't have it.
+        /// </summary>
+        internal static GameObject LoadPrefab(string name)
         {
-            get
-            {
-                Load();
-                return s_oarPrefab;
-            }
+            Load();
+            return s_bundle != null ? s_bundle.LoadAsset<GameObject>(name) : null;
         }
 
         /// <summary>
@@ -87,7 +86,7 @@ namespace VikingOarsmen
                 return;
             }
 
-            s_oarPrefab = bundle.LoadAsset<GameObject>(OarPrefabName);
+            s_bundle = bundle;
             s_rowIdle = bundle.LoadAsset<AnimationClip>(RowIdleName);
             s_rowStroke = bundle.LoadAsset<AnimationClip>(RowStrokeName);
             s_rowIdleMirror = bundle.LoadAsset<AnimationClip>(RowIdleName + MirrorSuffix);
