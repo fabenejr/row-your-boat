@@ -7,6 +7,7 @@ W/S shift gears just like the helm's rudder, and the more of the crew rows, the 
 ## Features
 
 - **Oar required:** craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon — it also works as one, based on the Club.
+- **Drakkar Oar:** the Drakkar's benches sit too high for the oar, so it takes a longer one, painted after the Drakkar: craft it at a level-2 workbench (16 Yggdrasil Wood, 8 Resin). It rows any other ship too.
 - **Gear shifting:** sitting on a bench with the oar equipped puts you in neutral automatically. W/S step through reverse, neutral and gears 1–3, exactly like steering a ship, except it never turns.
 - **Crew-powered speed:** each rower adds thrust based on their gear (reverse and gears 1–3), so four rowers in gear 1 match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
 - **A bench on the raft:** one crew member can sit at the front of the raft and row while another steers.
@@ -38,7 +39,7 @@ and choose *Import local mod* in the manager.
 
 ## Usage
 
-1. Craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon.
+1. Craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon. For the Drakkar, craft the Drakkar Oar instead (level-2 workbench, 16 Yggdrasil Wood, 8 Resin).
 2. Board a ship and **sit on a bench** (press **E** on it). Rowing starts automatically, in neutral.
 3. **W**/**S** shift gear: neutral → 1 → 2 → 3 ahead, or neutral → reverse. Same controls as the ship's own rudder, minus steering.
 4. Getting up from the bench, dying or switching away from the oar stops rowing (and hides it) immediately.
