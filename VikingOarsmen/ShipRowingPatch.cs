@@ -11,7 +11,7 @@ namespace VikingOarsmen
     internal static class ShipRowingPatch
     {
         /// <summary>
-        /// Adds rowing propulsion to every ship.
+        /// Adds rowing propulsion to every ship, and a bench to the raft (see RaftSeat).
         /// </summary>
         [HarmonyPatch(typeof(Ship), "Awake")]
         [HarmonyPostfix]
@@ -28,6 +28,7 @@ namespace VikingOarsmen
             {
                 __instance.gameObject.AddComponent<ShipRowing>();
             }
+            RaftSeat.AddTo(__instance);
         }
 
         /// <summary>
