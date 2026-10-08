@@ -60,6 +60,16 @@ namespace VikingOarsmen
         // The visual model turned to face the stern, so it can be turned back when rowing stops.
         private Transform _turnedVisual;
 
+        // This ship's seating (see ShipFit) and the side of the hull the rower sits on (+1 starboard, -1 port).
+        private ShipFit _fit;
+        private float _side = 1f;
+
+        // The spine as the Animator last posed it, and as leant over the gunwale after it: if the Animator
+        // didn't pose it again this frame, the lean is applied to the same pose, not on top of the last lean.
+        private Transform _spine;
+        private Quaternion _spinePosed;
+        private Quaternion _spineLeant;
+
         // The hand-held oar last put in the rowing grip, and whether it was moved to the left hand (mirrored
         // clips), so it is set again only on change.
         private GameObject _rowingGripInstance;
@@ -106,6 +116,7 @@ namespace VikingOarsmen
             }
 
             FaceStern(ship);
+            LeanOverGunwale(ship);
             TrackSplash();
         }
 
@@ -253,6 +264,8 @@ namespace VikingOarsmen
         {
             _localRowerPosition = localRower;
             float side = localRower.x >= 0f ? 1f : -1f;
+            _side = side;
+            _fit = ShipFit.For(ship);
             bool onGunwale = TryFindGunwale(ship, localRower, side, out float halfWidth, out float gunwaleTop);
             _localGunwalePoint = onGunwale
                 ? new Vector3(side * halfWidth, gunwaleTop, localRower.z)
@@ -284,6 +297,46 @@ namespace VikingOarsmen
 
             _turnedVisual = visual.transform;
             _turnedVisual.rotation = Quaternion.LookRotation(stern, up);
+            float outboard = _fit != null ? _fit.Outboard : 0f;
+            _turnedVisual.position = transform.position + ship.transform.right * (_side * outboard);
+        }
+
+        /// <summary>
+        /// Leans the upper body out over the gunwale by this ship's ShipFit.Lean, turning the Spine bone about
+        /// its own joint: the hips stay on the bench, and the arms and the oar in the hand go with the chest.
+        /// Runs after the Animator has posed the body this frame.
+        /// </summary>
+        private void LeanOverGunwale(Ship ship)
+        {
+            float lean = _fit != null ? _fit.Lean : 0f;
+            if (lean == 0f || !TryGetSpine(out Transform spine))
+            {
+                return;
+            }
+
+            if (spine.localRotation != _spineLeant)
+            {
+                _spinePosed = spine.localRotation;
+            }
+            spine.localRotation = _spinePosed;
+
+            // Turning about up × outboard tips the top of the spine towards the gunwale.
+            Vector3 outboard = ship.transform.right * _side;
+            Vector3 axis = Vector3.Cross(ship.transform.up, outboard);
+            spine.rotation = Quaternion.AngleAxis(lean, axis) * spine.rotation;
+            _spineLeant = spine.localRotation;
+        }
+
+        private bool TryGetSpine(out Transform spine)
+        {
+            if (_spine == null)
+            {
+                GameObject visual = _player.GetVisual();
+                Animator animator = visual != null ? visual.GetComponentInChildren<Animator>() : null;
+                _spine = animator != null && animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.Spine) : null;
+            }
+            spine = _spine;
+            return spine != null;
         }
 
         /// <summary>
@@ -294,6 +347,7 @@ namespace VikingOarsmen
             if (_turnedVisual != null)
             {
                 _turnedVisual.localRotation = Quaternion.identity;
+                _turnedVisual.localPosition = Vector3.zero;
             }
             _turnedVisual = null;
         }
