@@ -25,7 +25,7 @@
 
 ### 1.4 Configuração
 - Toda configuração nova do usuário passa por `Config.Bind` com descrição clara (seção, chave, default, texto explicativo) e ganha uma linha na tabela de configuração do `README.md`.
-- Config é organizada em seções temáticas: `Controls`, `Physics`, `Gameplay`, `Visual`, `UI`.
+- Config é organizada em seções temáticas: `Controls`, `Physics`, `Gameplay`, `Visual`, `UI`, `Audio`.
 
 ### 1.5 Logging
 - Um `ManualLogSource` único (`Plugin.Log`), nunca `UnityEngine.Debug.Log`.

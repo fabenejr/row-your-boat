@@ -11,6 +11,7 @@
 *.png binary
 *.dll binary
 *.zip binary
+*.wav binary
 
 # AssetBundles have no extension.
 VikingOarsmen/AssetBundles/* binary

@@ -50,7 +50,7 @@ Se cada remador tocasse o próprio som, numa tripulação de 4 o `multiple.wav` 
   - 1 remador: modo solo, no compasso da marcha dele.
   - 2 ou mais: modo multi, no compasso da **marcha mais usada a bordo**; empate vai para a mais rápida (Full > Half > Slow > Back; Slow e Back têm o mesmo ritmo, o empate fica com Slow, remando para frente).
 - Posição: o `AudioSource` vai para a média das posições dos remadores ativos (no solo, o próprio remador). Rolloff 3D: quem está longe ouve mais baixo; quem não tem o mod não ouve nada.
-- Volume: o `AudioSource` sai pelo grupo de efeitos (SFX) do mixer do jogo, para respeitar o volume de efeitos das opções. Confirmado no ILSpy: `AudioMan` não expõe um campo de grupo SFX, mas expõe `m_masterMixer` (público, o volume de efeitos é o parâmetro `SfxVol` dele). Plano: `AudioMan.instance.m_masterMixer.FindMatchingGroups("SFX")`; se não achar, copiar o `outputAudioMixerGroup` de um `AudioSource` de efeito vanilla (o mesmo prefab de splash que o `OarSplash` já localiza) e logar warning. Nome exato do grupo a confirmar em jogo.
+- Volume: o `AudioSource` sai pelo grupo de efeitos (SFX) do mixer do jogo, para respeitar o volume de efeitos das opções. Confirmado no ILSpy: `AudioMan` não guarda o grupo SFX num campo (cada prefab `sfx_*` vanilla traz o seu no `AudioSource`), mas expõe `m_masterMixer` (o volume de efeitos é o parâmetro `SfxVol` dele). Implementado: copia o `outputAudioMixerGroup` do primeiro prefab `sfx_*` do `ZNetScene` (loga o nome do grupo); se não achar, `m_masterMixer.FindMatchingGroups("SFX")`; se nada der, toca sem grupo e loga warning.
 - `RowingSoundVolume` multiplica o volume por cima disso.
 
 Para o barco saber o compasso, `StrokeRate` e `GetBeat` saem do `RowerAnimation` para um helper estático `RowingBeat`, usado pelos dois (refactor sem mudança de comportamento, commit separado).
@@ -63,7 +63,7 @@ Para o barco saber o compasso, `StrokeRate` e `GetBeat` saem do `RowerAnimation`
 - Mono é o formato certo para som 3D posicional; 16 bit basta e reduz o tamanho (~50–75 KB por som).
 - Mesmo padrão do bundle: tudo dentro da DLL, nada muda no `package/` nem no `release.ps1`.
 - Conversão: script `art/sound/convert_sounds.py` (só biblioteca padrão do Python, já que não há `ffmpeg`/`sox` no ambiente), que lê `art/sound/*.wav` e grava as versões 16 bit mono em `VikingOarsmen/Sounds/`, no mesmo espírito de `art/oar/build_oar.py`.
-- Leitura: `ModSounds.cs` lê o cabeçalho RIFF (só aceita PCM 16 bit mono; qualquer outra coisa loga warning e o som fica desligado), converte as amostras para `float[]` e cria o `AudioClip` uma vez, na primeira vez que for pedido.
+- Leitura: `ModSounds.cs` lê o cabeçalho RIFF (só aceita PCM 16 bit mono; qualquer outra coisa loga warning e o som fica desligado), converte as amostras para `float[]` e cria o `AudioClip` uma vez, na primeira vez que for pedido. O clipe é preenchido pelo callback de leitura do `AudioClip.Create`, não por `SetData`: uma sobrecarga de `SetData` usa `Span` do netstandard 2.1 e o compilador não resolve a chamada contra o net462 (erro CS1705).
 
 **Config nova**, seção nova `Audio` (abre precedente para outros sons):
 

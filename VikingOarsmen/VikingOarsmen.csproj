@@ -42,6 +42,11 @@
     <EmbeddedResource Include="AssetBundles\vikingoarsmen" LogicalName="VikingOarsmen.AssetBundles.vikingoarsmen" />
   </ItemGroup>
 
+  <!-- Rowing sounds, 16-bit mono (see art/sound/convert_sounds.py), loaded by ModSounds. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Sounds\*.wav" LogicalName="VikingOarsmen.Sounds.%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <!-- Private=false: game assemblies are compile-time only and must not be copied to bin. -->
   <ItemGroup>
     <Reference Include="BepInEx">
@@ -85,6 +90,11 @@
     <!-- Required for AssetBundle (oar model, rowing animations). -->
     <Reference Include="UnityEngine.AssetBundleModule">
       <HintPath>$(ManagedDir)\UnityEngine.AssetBundleModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Required for AudioSource / AudioClip / AudioMixerGroup (rowing sound). -->
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(ManagedDir)\UnityEngine.AudioModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <!-- Required for the Image fields of Hud (gear indicator). -->
