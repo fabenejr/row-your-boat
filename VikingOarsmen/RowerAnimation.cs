@@ -22,11 +22,6 @@ namespace VikingOarsmen
         // Seconds a rower takes to fall back in step with the crew's beat after drifting off it.
         private const float SyncTime = 0.5f;
 
-        // Stroke pace per gear, relative to the stroke clip's own length (1 = one stroke per clip length).
-        private const float SlowPace = 0.75f;
-        private const float HalfPace = 1f;
-        private const float FullPace = 1.3f;
-
         private readonly Player _player;
         private PlayableGraph _graph;
         private AnimationPlayableOutput _output;
@@ -87,7 +82,7 @@ namespace VikingOarsmen
             _strokeWeight = Mathf.MoveTowards(_strokeWeight, stroking ? 1f : 0f, Time.deltaTime / BlendTime);
 
             // Back water by rowing the same stroke backwards.
-            float rate = StrokeRate(gear, stroke.length);
+            float rate = RowingBeat.StrokeRate(gear, stroke.length);
             AdvancePhase(rate);
             float strokePhase = gear == RowingGear.Back ? 1f - _phase : _phase;
 
@@ -130,32 +125,8 @@ namespace VikingOarsmen
             _output.SetSourcePlayable(_mixer);
             _output.SetWeight(0f);
             _graph.Play();
-            _phase = GetBeat(StrokeRate(RowingGear.Half, stroke.length));
+            _phase = RowingBeat.GetBeat(RowingBeat.StrokeRate(RowingGear.Half, stroke.length));
             return true;
-        }
-
-        /// <summary>
-        /// Strokes per second for a gear (0 in neutral). StrokeSpeed scales every gear.
-        /// </summary>
-        private static float StrokeRate(RowingGear gear, float clipLength)
-        {
-            float pace;
-            switch (gear)
-            {
-                case RowingGear.Slow:
-                case RowingGear.Back:
-                    pace = SlowPace;
-                    break;
-                case RowingGear.Half:
-                    pace = HalfPace;
-                    break;
-                case RowingGear.Full:
-                    pace = FullPace;
-                    break;
-                default:
-                    return 0f;
-            }
-            return Mathf.Max(0f, Plugin.StrokeSpeed.Value) * pace / Mathf.Max(clipLength, 0.01f);
         }
 
         /// <summary>
@@ -171,18 +142,8 @@ namespace VikingOarsmen
             _phase = Mathf.Repeat(_phase + Time.deltaTime * rate, 1f);
 
             // Close the gap to the beat the short way around the cycle, within about SyncTime.
-            float gap = Mathf.Repeat(GetBeat(rate) - _phase + 0.5f, 1f) - 0.5f;
+            float gap = Mathf.Repeat(RowingBeat.GetBeat(rate) - _phase + 0.5f, 1f) - 0.5f;
             _phase = Mathf.Repeat(_phase + gap * Mathf.Clamp01(Time.deltaTime / SyncTime), 1f);
-        }
-
-        /// <summary>
-        /// Point of the stroke cycle everyone in the same gear should be at, from the network clock.
-        /// </summary>
-        private static float GetBeat(float rate)
-        {
-            double time = ZNet.instance != null ? ZNet.instance.GetTimeSeconds() : Time.time;
-            double strokes = time * rate;
-            return (float)(strokes - System.Math.Floor(strokes));
         }
     }
 }
