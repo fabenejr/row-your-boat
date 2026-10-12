@@ -25,7 +25,7 @@
 
 ### 1.4 Configuração
 - Toda configuração nova do usuário passa por `Config.Bind` com descrição clara (seção, chave, default, texto explicativo) e ganha uma linha na tabela de configuração do `README.md`.
-- Config é organizada em seções temáticas: `Controls`, `Physics`, `Gameplay`, `Visual`, `UI`.
+- Config é organizada em seções temáticas: `Controls`, `Physics`, `Gameplay`, `Visual`, `UI`, `Audio`.
 
 ### 1.5 Logging
 - Um `ManualLogSource` único (`Plugin.Log`), nunca `UnityEngine.Debug.Log`.
@@ -88,3 +88,11 @@ Cruzando o que já existe com a pesquisa da seção 2, estas são as decisões f
    - Modelo: o mesmo `art/oar/build_oar.py`, variante `drakkar` → `art/drakkar_oar/`: cabo 2× e pá 1,2× (4,85 m no total), mesma espessura, pegadas iguais (a animação segura no mesmo lugar). Textura gerada por código com a paleta medida da textura do casco do Drakkar (madeira escura com veios, ferro com filete ocre, escamas verdes no pescoço da pá, tábuas claras); nenhum pixel do jogo no repositório.
    - Os dois prefabs vão no mesmo bundle `vikingoarsmen`; `OarItem` descreve cada remo (`OarKind`) e lê a ponta da pá do próprio modelo.
 
+
+13. **[Decidido] Som de remada por barco, no compasso do relógio de rede** (plano completo em [[Plano-Som-de-Remada]]).
+   - Um componente `RowingSound` por `Ship` (postfix de `Ship.Awake`), em todos os clientes, com um `AudioSource` 3D próprio. O som é do barco, não do remador, para uma tripulação não empilhar o mesmo som várias vezes.
+   - Conta como remando quem tem `GetRowingShip` = o barco, está dentro dele e tem marcha efetiva diferente de `Stop` (neutro e marcha suspensa por estamina não contam). 1 remador = solo (`single`/`single2` sorteados, no máximo 2 iguais seguidos); 2 ou mais = `multiple`/`multiple2` (mesma regra), no compasso da marcha mais usada a bordo (empate = a mais rápida). Ré toca o mesmo som no início da empurrada (ponto próprio, `BackSoundPhase`, porque o clipe tocado ao contrário põe a pá na água onde a puxada termina). Pitch varia ±10%; ganho de 1,2× no `PlayOneShot` (as gravações já chegam a 0 dBFS).
+   - O disparo é quando o compasso (`RowingBeat`, extraído do `RowerAnimation`, calculado do `ZNet.GetTimeSeconds`) cruza `SoundPhase`, não pelo splash da pá, que depende da altura da água. Nada novo na rede.
+   - Os sons saem pelo grupo SFX do mixer do jogo (respeitam o volume de efeitos) e ficam na seção de config nova `Audio`: `RowingSound`, `RowingSoundVolume`.
+   - Arquivos: WAV originais (do maintainer, licença MIT) em `art/sound/`; versões 16 bit mono em `VikingOarsmen/Sounds/`, embutidas na DLL como `EmbeddedResource` e decodificadas em runtime (fora do bundle do Unity).
+   - O splash atual continua tocando junto; se o som dele sai é decidido no teste em jogo.

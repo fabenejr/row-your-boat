@@ -38,6 +38,8 @@ namespace VikingOarsmen
         internal static ConfigEntry<float> StaminaDrainIntervalFull;
         internal static ConfigEntry<float> StrokeSpeed;
         internal static ConfigEntry<bool> Splash;
+        internal static ConfigEntry<bool> RowingSound;
+        internal static ConfigEntry<float> RowingSoundVolume;
 
         // Harmony instance that owns all patches applied by this mod.
         private Harmony _harmony;
@@ -72,6 +74,11 @@ namespace VikingOarsmen
                 "Speed of the rowing animation in every gear. 1.0 = the animation's own pace in Half gear (2); Slow and reverse are slower, Full faster.");
             Splash = Config.Bind("Visual", "Splash", true,
                 "Splash and play a sound when the oar blade hits the water.");
+            RowingSound = Config.Bind("Audio", "RowingSound", true,
+                "Play the sound of the oars on every stroke: a lone rower's, or the whole crew's when two or more row together.");
+            RowingSoundVolume = Config.Bind("Audio", "RowingSoundVolume", 1.0f,
+                new ConfigDescription("Volume of the rowing sound, relative to the game's sound effects volume.",
+                    new AcceptableValueRange<float>(0f, 1f)));
 
             // Apply every [HarmonyPatch] found in this assembly.
             _harmony = new Harmony(PluginGuid);
