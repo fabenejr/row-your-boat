@@ -14,8 +14,13 @@ namespace VikingOarsmen
     /// </remarks>
     internal class RowingSound : MonoBehaviour
     {
-        // Point of the stroke cycle (0..1, 0 = catch) the sound plays at: the blade going into the water.
+        // Point of the stroke clip (0..1, 0 = catch) the sound plays at: just after the blade goes into the
+        // water and the pull starts.
         private const float SoundPhase = 0.1f;
+
+        // Same for reverse, which plays the clip backwards: the blade goes in where the pull ends (about 0.5)
+        // and the push runs back towards the catch.
+        private const float BackSoundPhase = 0.45f;
 
         // Random pitch change per stroke, so the same sound doesn't feel mechanical.
         private const float PitchVariation = 0.05f;
@@ -88,8 +93,8 @@ namespace VikingOarsmen
                 return;
             }
 
-            // Reverse plays the stroke backwards, so the blade hits the water at the mirrored point.
-            float target = gear == RowingGear.Back ? 1f - SoundPhase : SoundPhase;
+            // Reverse shows the clip at 1 - beat (see RowerAnimation).
+            float target = gear == RowingGear.Back ? 1f - BackSoundPhase : SoundPhase;
             // Crossed when the target lies in (last beat, this beat]; a hitch longer than half a stroke skips it.
             float advanced = Mathf.Repeat(beat - _beat, 1f);
             float toTarget = Mathf.Repeat(target - _beat, 1f);

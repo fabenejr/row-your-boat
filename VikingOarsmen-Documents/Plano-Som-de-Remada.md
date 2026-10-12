@@ -11,7 +11,7 @@ Dois modos de som, decididos por barco:
 | **Solo** | Só uma pessoa remando o barco | Sorteia entre `single.wav` e `single2.wav`, um por remada, nunca o mesmo mais de 2 vezes seguidas |
 | **Multi** | Duas ou mais pessoas remando o mesmo barco | `multiple.wav`, um por remada |
 
-O som acompanha o movimento: toca uma vez por ciclo de remada, num ponto fixo do ciclo. Remada mais rápida (marcha maior, `StrokeSpeed` maior) = ciclo mais curto = o som repete mais vezes. Neutro = silêncio. Ré tem som (o mesmo, na fase invertida). Todos os sons levam uma variação leve de pitch (±5%) para não soar mecânico.
+O som acompanha o movimento: toca uma vez por ciclo de remada, num ponto fixo do ciclo. Remada mais rápida (marcha maior, `StrokeSpeed` maior) = ciclo mais curto = o som repete mais vezes. Neutro = silêncio. Ré tem som (o mesmo, no início da empurrada). Todos os sons levam uma variação leve de pitch (±5%) para não soar mecânico.
 
 ## 2. Material de origem
 
@@ -36,7 +36,7 @@ Decisão: **o som dispara quando o compasso cruza um ponto fixo do ciclo** (`Sou
 - O barco calcula o compasso direto do relógio de rede (helper `RowingBeat`, seção 4), sem ler nada do `RowerAnimation`. Assim o som não depende da animação estar rodando (remador fora da distância de renderização) e bate com ela porque os dois usam o mesmo relógio.
 - Detecção de virada frame a frame: dispara quando a fase passa por `SoundPhase` entre o frame anterior e o atual (com volta no 1 → 0).
 - Quando a marcha de referência muda, o compasso salta (outro ritmo); nesse frame só se guarda a fase nova, sem disparar, para não tocar um som fora de hora.
-- Na ré a animação toca de trás para frente (`1 - fase`); o ponto do som vira `1 - SoundPhase`, então continua batendo com a mesma pose de pá na água.
+- Na ré a animação toca de trás para frente (pose = `1 - fase`), então a pá entra na água onde a puxada termina, não na pegada. Medido no clipe exportado (`rowing_anims.fbx`, 60 frames): puxada de 0 a ~0,5 (mãos no alto, pá na água), pá saindo de 0,5 a 0,75, recuperação até 1. O som da ré tem o seu próprio ponto, `BackSoundPhase` = 0,45 (pose), logo depois de a pá entrar e a empurrada começar; no compasso isso é `1 - BackSoundPhase`. (A primeira versão espelhava `SoundPhase` e o som caía no fim da empurrada.)
 
 Descartado: disparar junto com o splash (`OarVisual.TrackSplash`). Depende de a ponta da pá cruzar a superfície, o que muda com onda, barco e remo (no Drakkar já foi um problema); o som falharia algumas remadas. A fase é determinística.
 
@@ -101,7 +101,7 @@ Commits previstos:
 | --- | --- | --- |
 | 1 | Quem conta como "remando" | Só quem está remando de fato: marcha efetiva 1, 2, 3 ou ré. Neutro ou marcha suspensa por estamina não conta e não faz som. |
 | 2 | Compasso do multi com marchas diferentes | (a) Marcha mais usada a bordo; empate = a mais rápida. |
-| 3 | Ré tem som | Sim, o mesmo som, na fase invertida. |
+| 3 | Ré tem som | Sim, o mesmo som, no início da empurrada (`BackSoundPhase`). |
 | 4 | Aleatório no solo e pitch | No máximo 2 vezes seguidas o mesmo som + variação leve de pitch (±5%), inclusive no `multiple.wav`. |
 | 5 | Splash atual | Os dois tocam juntos por enquanto; decidir no teste se o som do splash sai. |
 | 6 | Config | Seção nova `Audio`, com `RowingSound` e `RowingSoundVolume`. |
@@ -124,4 +124,6 @@ Sem testes automatizados; checklist manual ([[Testes e Anotações]]):
 - [ ] Um dos dois sai do banco ou vai para neutro: volta para o modo solo.
 - [ ] Jogador fora do barco / longe: ouve mais baixo ou nada; jogador remoto ouve o barco do outro.
 - [ ] Volume de efeitos do jogo em 0: sem som. `RowingSound = false`: sem som. `RowingSoundVolume` 0,5: mais baixo.
-- [ ] Calibrar `SoundPhase`, distância do rolloff e volume ouvindo em jogo.
+- [x] `SoundPhase` = 0,1 bate com a puxada na marcha.
+- [ ] Ré: som no início da empurrada (`BackSoundPhase` = 0,45).
+- [ ] Calibrar distância do rolloff e volume ouvindo em jogo.
