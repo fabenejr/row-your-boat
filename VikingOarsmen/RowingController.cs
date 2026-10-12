@@ -49,7 +49,7 @@ namespace VikingOarsmen
                 return;
             }
 
-            Ship ship = Ship.GetLocalShip();
+            Ship ship = GetSeatShip(player);
             bool onBench = ship != null && IsOnBench(player) && !player.IsDead();
             bool hasOar = HasOarFor(player, ship);
             bool inputAllowed = CanTakeGameplayInput();
@@ -169,8 +169,24 @@ namespace VikingOarsmen
         /// </summary>
         internal static bool IsRowingMode(Player player)
         {
-            Ship ship = Ship.GetLocalShip();
+            Ship ship = GetSeatShip(player);
             return ship != null && !player.IsDead() && IsOnBench(player) && HasOarFor(player, ship);
+        }
+
+        /// <summary>
+        /// The ship whose seat the player is attached to, or null. Not Ship.GetLocalShip(): that is the last
+        /// ship whose volume the player entered, so sailing close past another ship would hand the rowing
+        /// over to that ship until it moved away.
+        /// </summary>
+        private static Ship GetSeatShip(Player player)
+        {
+            if (!player.IsAttachedToShip())
+            {
+                return null;
+            }
+
+            Transform seat = player.GetAttachPoint();
+            return seat != null ? seat.GetComponentInParent<Ship>() : null;
         }
 
         /// <summary>
