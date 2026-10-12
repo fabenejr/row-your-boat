@@ -14,9 +14,7 @@ W/S shift gears just like the helm's rudder, and the more of the crew rows, the 
 - **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
 - **Rowing animation:** the oar is a custom model held in both hands, and the rower sits facing the stern. The stroke is a real animation: the blade enters the water at the catch, the body pulls back through the drive, then the oar lifts out and swings forward. Stroke pace follows the gear, and `StrokeSpeed` scales it. The oar returns to a normal weapon grip when you get up.
 - **Splash:** the blade splashes, with sound, as it hits the water, using the game's own arrow-in-water effect.
-- **Rowing sound:** the oars sound on every stroke, in step with the animation, faster in higher gears and
-  silent in neutral. A lone rower's strokes vary between two recordings; with two or more rowers the ship
-  plays one crew stroke, also varying between two recordings, following the gear most of them row in. It follows the game's sound effects volume.
+- **Rowing sound:** the oars sound on every stroke, in step with the animation, faster in higher gears and silent in neutral. A lone rower's strokes vary between two recordings; with two or more rowers the ship plays one crew stroke, also varying between two recordings, following the gear most of them row in. It follows the game's sound effects volume.
 - **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
 - **Gear indicator:** the selected gear is shown with the helm's own arrows on the gunwale beside your bench.
 - **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.
