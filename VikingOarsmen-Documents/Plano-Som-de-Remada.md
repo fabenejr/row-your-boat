@@ -126,5 +126,5 @@ Sem testes automatizados; checklist manual ([[Testes e Anotações]]):
 - [ ] Jogador fora do barco / longe: ouve mais baixo ou nada; jogador remoto ouve o barco do outro.
 - [ ] Volume de efeitos do jogo em 0: sem som. `RowingSound = false`: sem som. `RowingSoundVolume` 0,5: mais baixo.
 - [x] `SoundPhase` = 0,1 bate com a puxada na marcha.
-- [ ] Ré: som no início da empurrada (`BackSoundPhase` = 0,45).
+- [x] Ré: som no início da empurrada (`BackSoundPhase` = 0,45).
 - [ ] Calibrar distância do rolloff e volume ouvindo em jogo.
