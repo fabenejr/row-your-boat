@@ -16,7 +16,7 @@ W/S shift gears just like the helm's rudder, and the more of the crew rows, the 
 - **Splash:** the blade splashes, with sound, as it hits the water, using the game's own arrow-in-water effect.
 - **Rowing sound:** the oars sound on every stroke, in step with the animation, faster in higher gears and
   silent in neutral. A lone rower's strokes vary between two recordings; with two or more rowers the ship
-  plays one crew stroke following the gear most of them row in. It follows the game's sound effects volume.
+  plays one crew stroke, also varying between two recordings, following the gear most of them row in. It follows the game's sound effects volume.
 - **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
 - **Gear indicator:** the selected gear is shown with the helm's own arrows on the gunwale beside your bench.
 - **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.

@@ -20,8 +20,7 @@ namespace VikingOarsmen
         private const string ResourcePrefix = "VikingOarsmen.Sounds.";
 
         private static AudioClip[] s_single;
-        private static AudioClip s_multiple;
-        private static bool s_multipleLoaded;
+        private static AudioClip[] s_multiple;
         private static AudioMixerGroup s_sfxGroup;
         private static bool s_sfxGroupResolved;
 
@@ -34,23 +33,22 @@ namespace VikingOarsmen
             {
                 if (s_single == null)
                 {
-                    s_single = new[] { Load("single"), Load("single2") }.Where(clip => clip != null).ToArray();
+                    s_single = LoadAll("single", "single2");
                 }
                 return s_single;
             }
         }
 
         /// <summary>
-        /// The stroke of a crew of two or more, or null if missing from the DLL.
+        /// The strokes of a crew of two or more, picked at random (may be empty if missing from the DLL).
         /// </summary>
-        internal static AudioClip Multiple
+        internal static AudioClip[] Multiple
         {
             get
             {
-                if (!s_multipleLoaded)
+                if (s_multiple == null)
                 {
-                    s_multipleLoaded = true;
-                    s_multiple = Load("multiple");
+                    s_multiple = LoadAll("multiple", "multiple2");
                 }
                 return s_multiple;
             }
@@ -108,6 +106,11 @@ namespace VikingOarsmen
             }
 
             Plugin.Log.LogWarning("Game's sound effects mixer group not found; the rowing sound ignores the effects volume.");
+        }
+
+        private static AudioClip[] LoadAll(params string[] names)
+        {
+            return names.Select(Load).Where(clip => clip != null).ToArray();
         }
 
         private static AudioClip Load(string name)

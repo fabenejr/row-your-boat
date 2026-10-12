@@ -4,8 +4,8 @@ using UnityEngine;
 namespace VikingOarsmen
 {
     /// <summary>
-    /// The sound of the oars, once per stroke: a lone rower's stroke (single / single2, picked at random), or
-    /// the whole crew's (multiple) when two or more row the ship. See Steering item 13.
+    /// The sound of the oars, once per stroke: a lone rower's stroke (single / single2), or the whole crew's
+    /// (multiple / multiple2) when two or more row the ship, each picked at random. See Steering item 13.
     /// </summary>
     /// <remarks>
     /// One per ship rather than per rower, so a crew doesn't stack the same sound once per rower. Added to
@@ -23,10 +23,14 @@ namespace VikingOarsmen
         private const float BackSoundPhase = 0.45f;
 
         // Random pitch change per stroke, so the same sound doesn't feel mechanical.
-        private const float PitchVariation = 0.05f;
+        private const float PitchVariation = 0.1f;
 
-        // Most times a lone rower's stroke may repeat the same sound in a row.
+        // Most times a stroke may repeat the same sound in a row.
         private const int MaxRepeats = 2;
+
+        // Boost over the recordings, which already peak at full scale: AudioSource.volume stops at 1, but
+        // PlayOneShot's volume scale goes above it.
+        private const float Gain = 1.2f;
 
         // Full volume up to MinDistance metres from the rowers, fading out to silence at MaxDistance.
         private const float MinDistance = 4f;
@@ -46,7 +50,7 @@ namespace VikingOarsmen
         private float _rate;
         private float _beat;
 
-        private int _lastSingle = -1;
+        private AudioClip _lastClip;
         private int _repeats;
 
         private void Awake()
@@ -164,7 +168,7 @@ namespace VikingOarsmen
 
         private void Play()
         {
-            AudioClip clip = _rowers.Count == 1 ? PickSingle() : ModSounds.Multiple;
+            AudioClip clip = Pick(_rowers.Count == 1 ? ModSounds.Single : ModSounds.Multiple);
             if (clip == null)
             {
                 return;
@@ -176,28 +180,27 @@ namespace VikingOarsmen
                 _source.outputAudioMixerGroup = ModSounds.SfxGroup;
             }
             _source.pitch = 1f + Random.Range(-PitchVariation, PitchVariation);
-            _source.PlayOneShot(clip, Mathf.Clamp01(Plugin.RowingSoundVolume.Value));
+            _source.PlayOneShot(clip, Mathf.Clamp01(Plugin.RowingSoundVolume.Value) * Gain);
         }
 
         /// <summary>
-        /// A lone rower's stroke, at random, but never the same one more than MaxRepeats times in a row.
+        /// One of the clips at random, but never the same one more than MaxRepeats times in a row.
         /// </summary>
-        private AudioClip PickSingle()
+        private AudioClip Pick(AudioClip[] clips)
         {
-            AudioClip[] clips = ModSounds.Single;
             if (clips.Length == 0)
             {
                 return null;
             }
 
             int pick = Random.Range(0, clips.Length);
-            if (pick == _lastSingle && _repeats >= MaxRepeats && clips.Length > 1)
+            if (clips[pick] == _lastClip && _repeats >= MaxRepeats && clips.Length > 1)
             {
                 pick = (pick + Random.Range(1, clips.Length)) % clips.Length;
             }
-            _repeats = pick == _lastSingle ? _repeats + 1 : 1;
-            _lastSingle = pick;
-            return clips[pick];
+            _repeats = clips[pick] == _lastClip ? _repeats + 1 : 1;
+            _lastClip = clips[pick];
+            return _lastClip;
         }
     }
 }

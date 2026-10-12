@@ -97,7 +97,7 @@ There is no automated test suite (the game can't run in CI), so please check the
 - [ ] The blade stays in the water for the whole pull, also on the longship and in rough weather.
 - [ ] The blade splashes, with sound, as it enters the water. `Splash = false` turns it off.
 - [ ] With several rowers, all oars stroke in time.
-- [ ] Every stroke sounds once, as the blade enters the water: a lone rower alternates between two sounds (never the same one three times in a row), faster in higher gears, also in reverse, silent in neutral or when stamina runs out. `RowingSound = false` turns it off and `RowingSoundVolume` / the game's effects volume lower it.
+- [ ] Every stroke sounds once, as the blade enters the water: a lone rower and a crew each alternate between two sounds (never the same one three times in a row), faster in higher gears, also in reverse, silent in neutral or when stamina runs out. `RowingSound = false` turns it off and `RowingSoundVolume` / the game's effects volume lower it.
 - [ ] The rower holds the oar with both hands, the arms follow it and the torso moves with the stroke.
 - [ ] Getting up from the bench, or switching away from the oar, hides it immediately.
 - [ ] The ship accelerates smoothly and the helm still steers.

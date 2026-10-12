@@ -18,9 +18,9 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
   the Drakkar. It is the only oar that reaches the water from the Drakkar's benches, so the Drakkar now needs
   it to row; it rows any other ship too. As a weapon it hits harder than the oar: 70 blunt damage (90 at the
   highest quality), 300 knockback, 6 m reach, 15 stamina per swing, 90 durability, weight 8.
-- Rowing sound: the oars sound on every stroke, in step with the animation and faster in higher gears. A lone
-  rower's strokes vary between two recordings; when two or more row the same ship it plays a single crew
-  stroke instead. New `Audio` settings: `RowingSound` turns it off, `RowingSoundVolume` sets its volume.
+- Rowing sound: the oars sound on every stroke, in step with the animation and faster in higher gears. Each stroke
+  varies in recording and pitch; when two or more row the same ship it plays a single crew stroke instead of
+  one per rower. New `Audio` settings: `RowingSound` turns it off, `RowingSoundVolume` sets its volume.
 
 ### Changed
 

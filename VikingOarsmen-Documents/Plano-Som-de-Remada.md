@@ -9,9 +9,9 @@ Dois modos de som, decididos por barco:
 | Modo | Quando | Som |
 | --- | --- | --- |
 | **Solo** | Só uma pessoa remando o barco | Sorteia entre `single.wav` e `single2.wav`, um por remada, nunca o mesmo mais de 2 vezes seguidas |
-| **Multi** | Duas ou mais pessoas remando o mesmo barco | `multiple.wav`, um por remada |
+| **Multi** | Duas ou mais pessoas remando o mesmo barco | Sorteia entre `multiple.wav` e `multiple2.wav`, um por remada, com a mesma regra de no máximo 2 seguidas |
 
-O som acompanha o movimento: toca uma vez por ciclo de remada, num ponto fixo do ciclo. Remada mais rápida (marcha maior, `StrokeSpeed` maior) = ciclo mais curto = o som repete mais vezes. Neutro = silêncio. Ré tem som (o mesmo, no início da empurrada). Todos os sons levam uma variação leve de pitch (±5%) para não soar mecânico.
+O som acompanha o movimento: toca uma vez por ciclo de remada, num ponto fixo do ciclo. Remada mais rápida (marcha maior, `StrokeSpeed` maior) = ciclo mais curto = o som repete mais vezes. Neutro = silêncio. Ré tem som (o mesmo, no início da empurrada). Todos os sons levam uma variação de pitch (±10%; começou em ±5% e foi aumentada no teste para soar mais diferente) para não soar mecânico.
 
 ## 2. Material de origem
 
@@ -20,10 +20,11 @@ Em `~/row-your-boat-sound/` (fora do repositório). Sons gravados/produzidos pel
 | Arquivo | Duração | Formato |
 | --- | --- | --- |
 | `single.wav` | 0,56 s | PCM 24 bit, estéreo, 44,1 kHz |
-| `single2.wav` | 0,87 s | PCM 24 bit, estéreo, 44,1 kHz |
-| `multiple.wav` | 0,60 s | PCM 24 bit, estéreo, 44,1 kHz |
+| `single2.wav` | 0,70 s | PCM 24 bit, estéreo, 44,1 kHz |
+| `multiple.wav` | 0,63 s | PCM 24 bit, estéreo, 44,1 kHz |
+| `multiple2.wav` | 0,63 s | PCM 24 bit, estéreo, 44,1 kHz |
 
-Só os três WAV vão para o repositório (`art/sound/`); os `.RPP` do Reaper e `Backups/` ficam de fora.
+Só os WAV vão para o repositório (`art/sound/`); os `.RPP` do Reaper e `Backups/` ficam de fora.
 
 Referência de ritmo: o clipe `row_stroke` tem 2,46 s. Com `StrokeSpeed` = 1 o ciclo dura ~3,3 s na marcha 1 e na ré, 2,46 s na marcha 2 e ~1,9 s na marcha 3. Todos os sons cabem com folga dentro de um ciclo, então não se sobrepõem (com `StrokeSpeed` acima de ~2 o `single2` começa a encostar no próximo; aceitável, o `AudioSource` usa `PlayOneShot`).
 
@@ -72,7 +73,7 @@ Para o barco saber o compasso, `StrokeRate` e `GetBeat` saem do `RowerAnimation`
 | `RowingSound` | `true` | Liga/desliga o som de remada |
 | `RowingSoundVolume` | `1.0` | Volume relativo ao volume de efeitos do jogo (0 a 1) |
 
-Calibração de autor (constantes no código, não config): `SoundPhase`, distância máxima/rolloff do `AudioSource`, variação de pitch (±5%), máximo de repetições seguidas no solo (2).
+Calibração de autor (constantes no código, não config): `SoundPhase`, distância máxima/rolloff do `AudioSource`, variação de pitch (±10%), máximo de repetições seguidas (2), ganho de 1,2× sobre a gravação (os WAV já chegam a 0 dBFS de pico, então o aumento de volume é no `PlayOneShot`, não no arquivo).
 
 **Arquivos tocados:**
 
@@ -102,7 +103,7 @@ Commits previstos:
 | 1 | Quem conta como "remando" | Só quem está remando de fato: marcha efetiva 1, 2, 3 ou ré. Neutro ou marcha suspensa por estamina não conta e não faz som. |
 | 2 | Compasso do multi com marchas diferentes | (a) Marcha mais usada a bordo; empate = a mais rápida. |
 | 3 | Ré tem som | Sim, o mesmo som, no início da empurrada (`BackSoundPhase`). |
-| 4 | Aleatório no solo e pitch | No máximo 2 vezes seguidas o mesmo som + variação leve de pitch (±5%), inclusive no `multiple.wav`. |
+| 4 | Aleatório e pitch | No máximo 2 vezes seguidas o mesmo som + variação de pitch (±10%, era ±5%), no solo e no multi; o multi ganhou uma segunda gravação (`multiple2.wav`). |
 | 5 | Splash atual | Os dois tocam juntos por enquanto; decidir no teste se o som do splash sai. |
 | 6 | Config | Seção nova `Audio`, com `RowingSound` e `RowingSoundVolume`. |
 | 7 | Fontes no repositório | Só os WAV originais em `art/sound/`, sob a licença do repositório. Sem `.RPP` nem `Backups/`. |
@@ -119,7 +120,7 @@ Sem testes automatizados; checklist manual ([[Testes e Anotações]]):
 - [ ] Estamina acabando com a marcha suspensa: o som para.
 - [ ] `StrokeSpeed` 0,5 e 2: o som continua no mesmo ponto da remada.
 - [ ] Splash e som novo juntos: decidir se o som do splash continua (dúvida 5).
-- [ ] Multiplayer, 2+ remadores no mesmo barco: só `multiple.wav`, uma vez por remada (sem empilhar), igual nos dois clientes.
+- [ ] Multiplayer, 2+ remadores no mesmo barco: só `multiple`/`multiple2`, uma vez por remada (sem empilhar), igual nos dois clientes.
 - [ ] Multiplayer com marchas diferentes: segue a marcha mais usada; empate segue a mais rápida.
 - [ ] Um dos dois sai do banco ou vai para neutro: volta para o modo solo.
 - [ ] Jogador fora do barco / longe: ouve mais baixo ou nada; jogador remoto ouve o barco do outro.
