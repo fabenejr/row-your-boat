@@ -27,6 +27,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 - On port-side benches the oar swung into the ship instead of over the side.
 - Holding on to the mast or the prow with the oar equipped no longer starts rowing.
+- Sailing close past another ship no longer makes the rower turn, lean and row towards that ship: rowing
+  always follows the ship whose bench the rower sits on.
 
 ## 3.0.0 - 2026-10-04
 
