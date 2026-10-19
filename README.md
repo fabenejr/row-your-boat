@@ -105,7 +105,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout, coding guidelines
 
 - The ship surging forward with each stroke instead of a steady push
 - Water dripping from the blade on the way back, and a small wake while it pulls
-- A dedicated oar model loaded from an AssetBundle
 
 ## Contributing
 
