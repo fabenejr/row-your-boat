@@ -8,6 +8,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+## 3.1.0 - 2026-10-19
+
 ### Added
 
 - A rowing bench on the raft, at the front of its left side ahead of the mast, so one crew member can row
