@@ -212,6 +212,11 @@ namespace VikingOarsmen
         }
 
         /// <summary>
+        /// The ship this player is rowing, or null (resolved from the synced ZDO).
+        /// </summary>
+        internal Ship RowingShip => ResolveRowingShip();
+
+        /// <summary>
         /// World position of the gunwale beside the rower's seat, on the side they sit on. It moves only
         /// with the ship. False until it has been found.
         /// </summary>

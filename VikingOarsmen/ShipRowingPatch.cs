@@ -49,7 +49,7 @@ namespace VikingOarsmen
         }
 
         /// <summary>
-        /// Adds the rower's gear indicator to the HUD.
+        /// Adds the rower's gear indicator and the crew panel to the HUD.
         /// </summary>
         [HarmonyPatch(typeof(Hud), "Awake")]
         [HarmonyPostfix]
@@ -58,6 +58,10 @@ namespace VikingOarsmen
             if (__instance.GetComponent<GearHud>() == null)
             {
                 __instance.gameObject.AddComponent<GearHud>();
+            }
+            if (__instance.GetComponent<CrewHud>() == null)
+            {
+                __instance.gameObject.AddComponent<CrewHud>();
             }
         }
 

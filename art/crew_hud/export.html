@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Crew HUD Export</title>
+<style>
+  body { margin: 0; padding: 16px; background: #20242a; color: #ddd; font: 13px system-ui, sans-serif; }
+  li { margin: 4px 0; }
+  a { color: #d9a441; }
+</style>
+</head>
+<body>
+<p>Renders each SVG in <code>svg/</code> to the PNG the mod embeds. Served by a local server that accepts
+<code>POST /save/&lt;name&gt;.png</code>, the PNGs are saved straight away; otherwise use the download links and put
+the files in <code>VikingOarsmen/Textures/</code>.</p>
+<ul id="list"></ul>
+<script>
+// Pixel sizes are twice the size the HUD draws them at, in canvas units (see CrewHud.cs).
+const Sprites = [
+  ['frame', 360, 680],
+  ['ship_raft', 0, 512], ['ship_karve', 0, 512], ['ship_longship', 0, 512], ['ship_drakkar', 0, 512],
+  ['token', 64, 64], ['helmet', 64, 64], ['self_ring', 64, 64], ['oar', 128, 24],
+  ['icon_oar', 64, 64], ['icon_crew', 64, 64],
+];
+
+async function render([name, width, height]) {
+  const image = new Image();
+  image.src = `svg/${name}.svg`;
+  await image.decode();
+  // A width of 0 keeps the SVG's aspect ratio.
+  const w = width || Math.round(height * image.naturalWidth / image.naturalHeight);
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = height;
+  canvas.getContext('2d').drawImage(image, 0, 0, w, height);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+
+  let saved = false;
+  try {
+    saved = (await fetch(`/save/${name}.png`, { method: 'POST', body: blob })).ok;
+  } catch (e) {
+    // No saving server: the download link below still works.
+  }
+  const li = document.createElement('li');
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${name}.png`;
+  link.textContent = `${name}.png`;
+  li.append(link, ` ${w}x${height}${saved ? ' (saved)' : ''}`);
+  document.getElementById('list').appendChild(li);
+}
+
+(async () => {
+  for (const sprite of Sprites) {
+    await render(sprite);
+  }
+  document.title = 'Crew HUD Export: done';
+})();
+</script>
+</body>
+</html>

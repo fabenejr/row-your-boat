@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crew HUD Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:wght@700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #0e1013; color: #e8e2d4; font: 14px system-ui, sans-serif; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; padding: 12px 16px; align-items: center; }
+  .group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .group > span { color: #9a9486; }
+  button { background: #1b1d22; color: #e8e2d4; border: 1px solid #3a3d44; border-radius: 6px; padding: 5px 10px; cursor: pointer; font: inherit; }
+  button.on { border-color: #d9a441; color: #d9a441; }
+  .note { padding: 0 16px 8px; color: #9a9486; font-size: 12px; }
+  .outer { margin: 0 16px 16px; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 8px; }
+  /* 1920x1080 is the HUD canvas reference size; the stage is scaled to fit. */
+  .stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0;
+    background: linear-gradient(180deg, #8fa9b8 0%, #b9c7c9 38%, #4b6d78 39%, #2c4a55 70%, #1d3640 100%); }
+  .deck { position: absolute; left: 0; right: 0; bottom: 0; height: 330px; background: repeating-linear-gradient(90deg, #5a3f28 0 140px, #4c3521 140px 146px); }
+  .el { position: absolute; }
+  .num { font: 700 22px 'Averia Serif Libre', serif; color: #3a220e; }
+  .cap { font: 700 10px 'Averia Serif Libre', serif; color: #5c3a1c; letter-spacing: .5px; }
+</style>
+</head>
+<body>
+<div class="controls">
+  <div class="group" id="ships"><span>Ship</span></div>
+  <div class="group" id="gears"><span>Crew gear</span></div>
+  <div class="group"><span>Rowing</span><button data-k="rowers" data-d="-1">-</button><b id="rowers">2</b><button data-k="rowers" data-d="1">+</button></div>
+  <div class="group"><span>Seated, no oar</span><button data-k="seated" data-d="-1">-</button><b id="seated">0</b><button data-k="seated" data-d="1">+</button></div>
+  <div class="group"><span>Standing</span><button data-k="pass" data-d="-1">-</button><b id="pass">1</b><button data-k="pass" data-d="1">+</button></div>
+  <div class="group"><span>Camera looks</span><button id="view">Aft</button></div>
+  <div class="group"><span>Zoom</span><button id="zoom">2x</button></div>
+</div>
+<div class="note">Ship sizes and seat positions come from the game's prefabs (seat attach points). Only players rowing get an oar: someone on a bench without the oar, or standing, is grey, and empty benches stay empty. You are always one of the rowers (gold ring), since the panel only shows while you row.</div>
+<div class="outer" id="outer"><div class="stage" id="stage"><div class="deck"></div><div class="el" id="hud"></div></div></div>
+<script>
+// Layout constants: keep in sync with CrewHud.cs.
+const PanelSize = [180, 340], PanelX = 110, Border = 11, Header = 46;
+const ShipArea = [138, 232], ShipAreaY = -21, EndLabelOffset = 124;
+const MaxToken = 16, MinToken = 11, TokenPerMeter = 1.6, OarSize = [32, 6], SwingDegrees = 30, IconSize = 18;
+const Pace = { Back: 0.75, Slow: 0.75, Half: 1, Full: 1.3, Stop: 0 }, ClipLength = 2;
+const GearColor = { Back: '#ff8c26', Slow: '#73d966', Half: '#ffe64d', Full: '#f24d40', Stop: '#b3b3b3' };
+
+// From the game's prefabs (benches) and build_svgs.py (art rects, meters).
+const Ships = {
+  Raft:     { art: 'raft',     rect: [3.6, -3.6, 3.6],     benches: [[-1.1, 1.9]], spots: [[0.6, -1.2], [1.2, 0.8], [-0.6, -2]] },
+  Karve:    { art: 'karve',    rect: [1.95, -6.27, 6.34],  benches: [[0, -3.24], [0.48, 2.23], [-0.48, 2.23]], spots: [[0, -0.6], [0, 0.6], [0, 4]] },
+  Longship: { art: 'longship', rect: [3.35, -12.2, 12.2],  benches: [[1.46, -3.03], [-1.54, -3.03], [-0.79, 5.64], [0.79, 5.64], [0.45, -7.03]], spots: [[0, 0.8], [0.6, 1.8], [-0.6, -1]] },
+  Drakkar:  { art: 'drakkar',  rect: [6.6, -18.8, 19.8],   benches: [[-3.28,-2.42],[-2.47,-6.17],[2.41,-6.14],[3.25,-2.44],[3.24,1.78],[2.42,5.45],[-2.46,5.51],[-3.27,1.78],[1.33,-11.14],[2.05,-9.15],[0.7,-9.15],[-0.53,-9.15],[-1.95,-9.15],[-2.05,9.15],[-0.97,9.15],[0.68,9.15],[1.86,9.15]], spots: [[0, 2], [1, -2], [-1, 3]] },
+  Trailership: { art: 'longship', rect: [3.35, -12.2, 12.2], benches: [[1.46, -3.03], [-1.54, -3.03], [-0.79, 5.64], [0.79, 5.64], [0.47, -7.03]], spots: [[0, 0.8]] },
+};
+const state = { ship: 'Longship', gear: 'Half', rowers: 2, seated: 0, pass: 1, zoom: true, sternUp: true };
+let hud = document.getElementById('hud');
+
+function img(src, x, y, w, h, extra = {}) {
+  const i = document.createElement('img'); i.src = 'svg/' + src + '.svg'; i.className = 'el';
+  Object.assign(i.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' }, extra); hud.appendChild(i); return i;
+}
+function div(cls, x, y, text) { const d = document.createElement('div'); d.className = 'el ' + cls; d.style.left = x + 'px'; d.style.top = y + 'px'; d.textContent = text; hud.appendChild(d); return d; }
+
+let tokens = [], Token = MaxToken;
+function build() {
+  hud.innerHTML = ''; tokens = [];
+  const ship = Ships[state.ship];
+  // The panel's top-left in stage pixels: anchored left-middle, centered on PanelX.
+  hud.style.left = (PanelX - PanelSize[0] / 2) + 'px'; hud.style.top = (540 - PanelSize[1] / 2) + 'px';
+  img('frame', 0, 0, PanelSize[0], PanelSize[1]);
+
+  // Benches fill with the rowers first, then with players seated without an oar; the rest stay empty.
+  const rowers = state.rowers, seated = state.seated, standing = Math.min(state.pass, ship.spots.length);
+  const aboard = rowers + seated + standing;
+  img('icon_oar', 24, 13, IconSize, IconSize); div('num', 46, 9, rowers); div('cap', 24, 32, 'ROWING');
+  img('icon_crew', 102, 13, IconSize, IconSize); div('num', 124, 9, aboard); div('cap', 102, 32, 'ABOARD');
+
+  const [hw, z0, z1] = ship.rect;
+  const scale = Math.min(ShipArea[1] / (z1 - z0), ShipArea[0] / (2 * hw));
+  const cx = PanelSize[0] / 2, cy = PanelSize[1] / 2 - ShipAreaY, zMid = (z0 + z1) / 2;
+  const w = 2 * hw * scale, h = (z1 - z0) * scale;
+  // Tokens shrink on big ships so neighbouring seats don't overlap.
+  Token = Math.min(MaxToken, Math.max(MinToken, scale * TokenPerMeter));
+  // The ship and crew turn 180 degrees together while the camera looks aft, as it does behind a rower.
+  const view = document.createElement('div'); view.className = 'el';
+  Object.assign(view.style, { left: 0, top: 0, width: PanelSize[0] + 'px', height: PanelSize[1] + 'px',
+    transformOrigin: `${cx}px ${cy}px`, transform: state.sternUp ? 'rotate(180deg)' : '' });
+  hud.appendChild(view);
+  const panel = hud; hud = view;
+  img('ship_' + ship.art, cx - w / 2, cy - h / 2, w, h);
+
+  const people = ship.benches.slice(0, rowers).map((p, i) => ({ p, rowing: true, self: i === 0 }))
+    .concat(ship.benches.slice(rowers, rowers + seated).map(p => ({ p, rowing: false })))
+    .concat(ship.spots.slice(0, standing).map(p => ({ p, rowing: false })));
+  for (const person of people) {
+    const x = cx + person.p[0] * scale, y = cy - (person.p[1] - zMid) * scale;
+    const t = { person, x, y };
+    if (person.rowing) t.oar = img('oar', x, y - OarSize[1] * Token / MaxToken / 2, OarSize[0] * Token / MaxToken, OarSize[1] * Token / MaxToken, { transformOrigin: '0 50%' });
+    if (person.self) img('self_ring', x - Token * 0.75, y - Token * 0.75, Token * 1.5, Token * 1.5);
+    t.token = div('', x - Token / 2, y - Token / 2, '');
+    Object.assign(t.token.style, { width: Token + 'px', height: Token + 'px', borderRadius: '50%' });
+    // The token PNG is white and tinted by gear in game; CSS mask stands in for Image.color here.
+    Object.assign(t.token.style, { WebkitMask: 'url(svg/token.svg) center / contain no-repeat', mask: 'url(svg/token.svg) center / contain no-repeat' });
+    const under = img('token', x - Token / 2, y - Token / 2, Token, Token, { mixBlendMode: 'multiply' });
+    hud.appendChild(t.token); hud.appendChild(under);
+    t.token.style.background = person.rowing ? GearColor[state.gear] : '#8c8c8c';
+    img('helmet', x - Token / 2, y - Token / 2, Token, Token);
+    tokens.push(t);
+  }
+  hud = panel;
+  for (const [y, end] of [[-EndLabelOffset, state.sternUp ? 'STERN' : 'BOW'], [EndLabelOffset, state.sternUp ? 'BOW' : 'STERN']]) {
+    const label = div('cap', cx - 40, cy + y - 7, end);
+    Object.assign(label.style, { width: '80px', textAlign: 'center', letterSpacing: '2px' });
+  }
+}
+
+function animate(time) {
+  for (const t of tokens) {
+    if (!t.oar) continue;
+    const side = t.person.p[0] < 0 ? -1 : 1;
+    let angle = side > 0 ? 0 : 180;
+    const rate = Pace[state.gear] / ClipLength;
+    if (rate > 0) {
+      let swing = Math.sin(((time / 1000) * rate % 1) * Math.PI * 2) * SwingDegrees;
+      if (state.gear === 'Back') swing = -swing;
+      angle += swing * side;
+    }
+    t.oar.style.transform = `rotate(${-angle}deg)`;
+  }
+  requestAnimationFrame(animate);
+}
+
+function fit() {
+  const o = document.getElementById('outer'), s = document.getElementById('stage');
+  if (state.zoom) {
+    const k = o.clientWidth / 300;
+    s.style.transform = `scale(${k}) translate(0, ${-(540 - 190)}px)`;
+  } else s.style.transform = `scale(${o.clientWidth / 1920})`;
+  o.style.aspectRatio = state.zoom ? '300 / 380' : '16 / 9';
+}
+function buttons(id, values, key) {
+  const g = document.getElementById(id);
+  for (const v of values) { const b = document.createElement('button'); b.textContent = v; b.dataset.v = v; b.onclick = () => { state[key] = v; sync(); }; g.appendChild(b); }
+}
+function sync() {
+  for (const b of document.querySelectorAll('#ships button')) b.classList.toggle('on', b.dataset.v === state.ship);
+  for (const b of document.querySelectorAll('#gears button')) b.classList.toggle('on', b.dataset.v === state.gear);
+  const benches = Ships[state.ship].benches.length;
+  state.rowers = Math.min(Math.max(state.rowers, 1), benches);
+  state.seated = Math.min(Math.max(state.seated, 0), benches - state.rowers);
+  state.pass = Math.min(Math.max(state.pass, 0), Ships[state.ship].spots.length);
+  for (const k of ['rowers', 'seated', 'pass']) document.getElementById(k).textContent = state[k];
+  document.getElementById('zoom').classList.toggle('on', state.zoom);
+  document.getElementById('view').textContent = state.sternUp ? 'Aft (stern up)' : 'Forward (bow up)';
+  build(); fit();
+}
+buttons('ships', Object.keys(Ships), 'ship');
+buttons('gears', ['Back', 'Stop', 'Slow', 'Half', 'Full'], 'gear');
+for (const b of document.querySelectorAll('button[data-k]')) b.onclick = () => { state[b.dataset.k] += +b.dataset.d; sync(); };
+document.getElementById('view').onclick = () => { state.sternUp = !state.sternUp; sync(); };
+document.getElementById('zoom').onclick = () => { state.zoom = !state.zoom; sync(); };
+window.addEventListener('resize', fit);
+sync(); requestAnimationFrame(animate);
+</script>
+</body>
+</html>
