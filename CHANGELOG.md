@@ -8,6 +8,15 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+### Added
+
+- Crew panel: while you row, a carved wooden panel on the left of the screen counts how many aboard are rowing
+  and shows a drawing of your ship from above, turned to match your view (stern up while the camera looks aft,
+  as it does behind a rower) and labeled BOW and STERN: the raft, karve, longship (also used for the trailership)
+  or drakkar, with its shields, mast and benches. Each rower is a helmeted token at their seat, colored by gear,
+  with an oar that swings in time with their stroke; everyone else aboard is grey, and yours has a gold ring.
+  `ShowCrewHud` turns it off.
+
 ## 3.1.0 - 2026-10-19
 
 ### Added

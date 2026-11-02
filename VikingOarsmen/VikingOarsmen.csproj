@@ -47,6 +47,11 @@
     <EmbeddedResource Include="Sounds\*.wav" LogicalName="VikingOarsmen.Sounds.%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <!-- Crew HUD artwork, exported from art/crew_hud (see build_svgs.py), loaded by CrewHudArt. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Textures\*.png" LogicalName="VikingOarsmen.Textures.%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <!-- Private=false: game assemblies are compile-time only and must not be copied to bin. -->
   <ItemGroup>
     <Reference Include="BepInEx">
@@ -100,6 +105,11 @@
     <!-- Required for the Image fields of Hud (gear indicator). -->
     <Reference Include="UnityEngine.UI">
       <HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Required for the crew HUD's counts, written with the HUD's own TextMeshPro font. -->
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(ManagedDir)\Unity.TextMeshPro.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

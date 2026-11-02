@@ -17,6 +17,7 @@ W/S shift gears just like the helm's rudder, and the more of the crew rows, the 
 - **Rowing sound:** the oars sound on every stroke, in step with the animation, faster in higher gears and silent in neutral. A lone rower's strokes vary between two recordings; with two or more rowers the ship plays one crew stroke, also varying between two recordings, following the gear most of them row in. It follows the game's sound effects volume.
 - **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
 - **Gear indicator:** the selected gear is shown with the helm's own arrows on the gunwale beside your bench.
+- **Crew panel:** while you row, a carved wooden panel counts how many aboard are rowing and shows your ship from above, turned to match your view and labeled bow and stern, with each rower at their seat, colored by gear, with an oar swinging in time with their stroke; passengers show in grey. `ShowCrewHud` turns it off.
 - **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
 
@@ -71,6 +72,7 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 | Gameplay | `StaminaDrainIntervalFull` | `1` | Seconds between strokes in gear 3 |
 | Visual | `StrokeSpeed` | `1.0` | Speed of the rowing animation in every gear (1.0 = the animation's own pace in Half gear) |
 | Visual | `Splash` | `true` | Splash and play a sound when the blade hits the water |
+| Visual | `ShowCrewHud` | `true` | While you row, show a panel with how many aboard are rowing and a drawing of the ship with where each sits |
 | Audio | `RowingSound` | `true` | Play the sound of the oars on every stroke (a lone rower's, or the crew's) |
 | Audio | `RowingSoundVolume` | `1.0` | Volume of the rowing sound, relative to the game's sound effects volume (0 to 1) |
 
