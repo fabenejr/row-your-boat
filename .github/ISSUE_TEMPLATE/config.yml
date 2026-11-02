@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Questions and ideas
+    url: https://github.com/fabenejr/row-your-boat/discussions
+    about: Ask a question or float an idea before opening an issue.
+  - name: Report a security vulnerability
+    url: https://github.com/fabenejr/row-your-boat/security/advisories/new
+    about: Report security problems privately, not as a public issue.
   - name: Contributing guide
     url: https://github.com/fabenejr/row-your-boat/blob/main/CONTRIBUTING.md
     about: Setup, coding guidelines and in-game test checklist.
