@@ -6,17 +6,17 @@ W/S shift gears just like the helm's rudder, and the more of the crew rows, the 
 
 ## Features
 
-- **Oar required:** craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon — it also works as one, based on the Club.
-- **Drakkar Oar:** the Drakkar's benches sit too high for the oar, so it takes a longer one, painted after the Drakkar: craft it at a level-2 workbench (16 Yggdrasil Wood, 8 Resin). It rows any other ship too.
+- **Oar required:** craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon. Off the ship it works as one: a slow two-handed club with the battleaxe's wide sweeping swings, using the Clubs skill.
+- **Drakkar Oar:** the Drakkar's benches sit too high for the oar, so it takes a longer one, painted after the Drakkar: craft it at a level-2 workbench (16 Yggdrasil Wood, 8 Resin). It is the only oar that rows the Drakkar, and it rows any other ship too. As a weapon it hits harder than the oar.
 - **Gear shifting:** sitting on a bench with the oar equipped puts you in neutral automatically. W/S step through reverse, neutral and gears 1–3, exactly like steering a ship, except it never turns.
-- **Crew-powered speed:** each rower adds thrust based on their gear (reverse and gears 1–3), so four rowers in gear 1 match a full sail in a strong tailwind. The maximum is scaled per ship type (raft, karve, longship, drakkar).
+- **Crew-powered speed:** each rower adds thrust based on their gear (reverse and gears 1–3), and the crew's thrust adds up: by default a rower in gear 1 adds 8% of the push of a full sail in a strong tailwind, and one in gear 3 about 14%, up to 1.5 times that sail in total. Thrust is scaled per ship type (raft, karve, longship, drakkar), and it eases in and out over a second and a half.
 - **A bench on the raft:** one crew member can sit at the front of the raft and row while another steers.
 - **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
-- **Rowing animation:** the oar is a custom model held in both hands, and the rower sits facing the stern. The stroke is a real animation: the blade enters the water at the catch, the body pulls back through the drive, then the oar lifts out and swings forward. Stroke pace follows the gear, and `StrokeSpeed` scales it. The oar returns to a normal weapon grip when you get up.
+- **Rowing animation:** the oar is a custom model held in both hands, and the rower sits facing the stern. The stroke is a real animation: the blade enters the water at the catch, the body pulls back through the drive, then the oar lifts out and swings forward. Stroke pace follows the gear, and `StrokeSpeed` scales it. Rowers on either side of the ship row over their own gunwale, and on the Longship and the Drakkar they sit closer to it and lean out, so the blade reaches the water. The oar returns to a normal weapon grip when you get up.
 - **Splash:** the blade splashes, with sound, as it hits the water, using the game's own arrow-in-water effect.
 - **Rowing sound:** the oars sound on every stroke, in step with the animation, faster in higher gears and silent in neutral. A lone rower's strokes vary between two recordings; with two or more rowers the ship plays one crew stroke, also varying between two recordings, following the gear most of them row in. It follows the game's sound effects volume.
 - **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
-- **Gear indicator:** the selected gear is shown with the helm's own arrows on the gunwale beside your bench.
+- **Gear indicator:** the selected gear is shown with the helm's own arrows (one, two or three up for gears 1–3, one down for reverse) around the steering-wheel icon, on the gunwale beside your bench.
 - **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
 
@@ -42,15 +42,17 @@ and choose *Import local mod* in the manager.
 
 1. Craft the oar at a tier-1 workbench (6 Fine Wood) and equip it like a weapon. For the Drakkar, craft the Drakkar Oar instead (level-2 workbench, 16 Yggdrasil Wood, 8 Resin).
 2. Board a ship and **sit on a bench** (press **E** on it). Rowing starts automatically, in neutral.
-3. **W**/**S** shift gear: neutral → 1 → 2 → 3 ahead, or neutral → reverse. Same controls as the ship's own rudder, minus steering.
-4. Getting up from the bench, dying or switching away from the oar stops rowing (and hides it) immediately.
+3. **W**/**S** shift gear: neutral → 1 → 2 → 3 ahead, or neutral → reverse. Same controls as the ship's own rudder, minus steering. While rowing, W/S never stand you up.
+4. Leave the bench with **E** or **Jump**, same as the helm. Getting up, dying or switching away from the oar stops rowing immediately.
+
+If you sit on a bench without the right oar, pressing W/S tells you which one to equip.
 
 You can row with the sail up. The two forces add together.
 Only the crew on the benches row: whoever is at the helm steers, and holding on to the mast or the prow doesn't row either. The raft has no bench of its own, so the mod adds one, at the front of its left side ahead of the mast, for one rower (only players with the mod see it).
 
 ### Quick test in single player
 
-Open the console with **F5** and run `devcommands`, `god` and `spawn VikingShip` (or `spawn Karve`) while facing the water.
+Open the console with **F5** and run `devcommands`, `god` and `spawn VikingShip` (or `spawn Karve`, `spawn Raft`, or `spawn VikingShip_Ashlands` for the Drakkar) while facing the water.
 Close the console, climb aboard, craft and equip the oar, then sit on a bench.
 
 ## Configuration
@@ -105,6 +107,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout, coding guidelines
 
 - The ship surging forward with each stroke instead of a steady push
 - Water dripping from the blade on the way back, and a small wake while it pulls
+- An oar icon for the gear indicator, in place of the steering wheel
 
 ## Contributing
 
