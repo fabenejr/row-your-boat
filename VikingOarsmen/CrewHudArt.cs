@@ -108,10 +108,17 @@ namespace VikingOarsmen
                     read += count;
                 }
 
+                if (s_loadImage == null)
+                {
+                    Plugin.Log.LogError("UnityEngine.ImageConversion.LoadImage not found; the crew panel's textures can't be decoded.");
+                    return null;
+                }
+
                 Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                if (s_loadImage == null || !(bool)s_loadImage.Invoke(null, new object[] { texture, data }))
+                if (!(bool)s_loadImage.Invoke(null, new object[] { texture, data }))
                 {
                     Plugin.Log.LogError($"Embedded texture '{name}.png' couldn't be decoded.");
+                    UnityEngine.Object.Destroy(texture);
                     return null;
                 }
                 texture.name = "VikingOarsmen_" + name;

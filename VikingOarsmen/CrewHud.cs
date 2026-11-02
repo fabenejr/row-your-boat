@@ -77,6 +77,13 @@ namespace VikingOarsmen
         private void Start()
         {
             _hud = GetComponent<Hud>();
+            // Without its artwork the panel would be blank white boxes, so leave it out (the cause is logged).
+            if (CrewHudArt.Get("frame") == null)
+            {
+                Plugin.Log.LogWarning("Crew panel artwork couldn't be loaded; the crew panel is disabled.");
+                return;
+            }
+
             Transform parent = _hud.m_rootObject != null ? _hud.m_rootObject.transform : transform;
 
             _root = NewRect("VikingOarsmen_CrewHud", parent);
