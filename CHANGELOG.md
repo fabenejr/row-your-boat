@@ -8,6 +8,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+## 3.2.0 - 2026-11-02
+
 ### Added
 
 - Crew panel: while you row, a carved wooden panel on the left of the screen counts how many aboard are rowing
