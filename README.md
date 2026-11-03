@@ -1,8 +1,26 @@
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/fabenejr/row-your-boat/main/package/icon.png" alt="Viking Oarsmen icon" width="128">
+
 # Viking Oarsmen
+
+</div>
 
 A [BepInEx](https://github.com/BepInEx/BepInEx) mod for **Valheim** that lets players row their ship by hand.
 Craft an oar, equip it, sit on a bench: your character grabs it over the side and paddles the ship forward.
 W/S shift gears just like the helm's rudder, and the more of the crew rows, the faster you go.
+
+<!-- Absolute URLs so the images also show on Thunderstore, which ships this file without docs/. -->
+![Rowing a longship, with the crew panel on the left](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/rowing.jpg)
+
+## How to craft the oars
+
+Two oars, two workbenches. Equip the oar like a weapon, climb aboard and sit on a bench.
+
+| Oar | Drakkar Oar |
+| --- | --- |
+| ![Oar recipe at the workbench](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/craft-oar.png) | ![Drakkar Oar recipe at the workbench](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/craft-drakkar-oar.png) |
+| **Workbench level 1**<br>6 Fine Wood<br>Rows the raft, karve and longship | **Workbench level 2**<br>16 Yggdrasil Wood, 8 Resin<br>The only oar that rows the Drakkar, and it rows every other ship too |
 
 ## Features
 
@@ -17,9 +35,17 @@ W/S shift gears just like the helm's rudder, and the more of the crew rows, the 
 - **Rowing sound:** the oars sound on every stroke, in step with the animation, faster in higher gears and silent in neutral. A lone rower's strokes vary between two recordings; with two or more rowers the ship plays one crew stroke, also varying between two recordings, following the gear most of them row in. It follows the game's sound effects volume.
 - **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
 - **Gear indicator:** the selected gear is shown with the helm's own arrows (one, two or three up for gears 1–3, one down for reverse) around the steering-wheel icon, on the gunwale beside your bench.
-- **Crew panel:** while you row, a carved wooden panel counts how many aboard are rowing and shows your ship from above, turned to match your view and labeled bow and stern, with each rower at their seat, colored by gear, with an oar swinging in time with their stroke; passengers show in grey. `ShowCrewHud` turns it off.
+- **Crew panel:** (picture below) while you row, a carved wooden panel counts how many aboard are rowing and shows your ship from above, turned to match your view and labeled bow and stern, with each rower at their seat, colored by gear, with an oar swinging in time with their stroke; passengers show in grey. `ShowCrewHud` turns it off.
 - **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
+
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/crew-panel.png" alt="Crew panel: the ship from above with each rower at their seat" width="180">
+
+*The crew panel: your ship from above, with each rower at their seat.*
+
+</div>
 
 ## Requirements
 

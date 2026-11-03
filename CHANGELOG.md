@@ -8,6 +8,10 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+### Changed
+
+- The README now shows the oar recipes as in-game screenshots, plus a picture of rowing and of the crew panel.
+
 ## 3.2.0 - 2026-11-02
 
 ### Added
