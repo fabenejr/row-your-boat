@@ -49,6 +49,7 @@ namespace VikingOarsmen
         private RowerAnimation _animation;
         private Ship _ship;
         private ZDOID _shipId = ZDOID.None;
+        private ZDOID _missingShipLogged = ZDOID.None;
 
         // Whether the gunwale was found, and the rower position (in ship space) it was found for.
         private bool _fitted;
@@ -257,6 +258,13 @@ namespace VikingOarsmen
                 GameObject shipObject = ZNetScene.instance != null ? ZNetScene.instance.FindInstance(shipId) : null;
                 _ship = shipObject != null ? shipObject.GetComponent<Ship>() : null;
                 _fitted = false;
+            }
+
+            // The ZDO says rowing but the ship isn't in this client's scene: the rower reads as not rowing.
+            if (_ship == null && Plugin.DebugRowingSync.Value && shipId != _missingShipLogged)
+            {
+                _missingShipLogged = shipId;
+                Plugin.Log.LogInfo($"[sync] {_player.GetPlayerName()}: rowing ship {shipId} not found in this client's scene");
             }
 
             return _ship;

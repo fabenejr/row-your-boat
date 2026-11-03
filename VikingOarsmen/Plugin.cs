@@ -41,6 +41,7 @@ namespace VikingOarsmen
         internal static ConfigEntry<bool> ShowCrewHud;
         internal static ConfigEntry<bool> RowingSound;
         internal static ConfigEntry<float> RowingSoundVolume;
+        internal static ConfigEntry<bool> DebugRowingSync;
 
         // Harmony instance that owns all patches applied by this mod.
         private Harmony _harmony;
@@ -82,6 +83,8 @@ namespace VikingOarsmen
             RowingSoundVolume = Config.Bind("Audio", "RowingSoundVolume", 1.0f,
                 new ConfigDescription("Volume of the rowing sound, relative to the game's sound effects volume.",
                     new AcceptableValueRange<float>(0f, 1f)));
+            DebugRowingSync = Config.Bind("Debug", "DebugRowingSync", false,
+                "Log every rower's stroke phase against the crew's beat to BepInEx/LogOutput.log, to track down rowers whose animation drifts or stalls in multiplayer.");
 
             // Apply every [HarmonyPatch] found in this assembly.
             _harmony = new Harmony(PluginGuid);

@@ -133,6 +133,7 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 | Visual | `ShowCrewHud` | `true` | While you row, show a panel with how many aboard are rowing and a drawing of the ship with where each sits |
 | Audio | `RowingSound` | `true` | Play the sound of the oars on every stroke (a lone rower's, or the crew's) |
 | Audio | `RowingSoundVolume` | `1.0` | Volume of the rowing sound, relative to the game's sound effects volume (0 to 1) |
+| Debug | `DebugRowingSync` | `false` | Log each rower's stroke phase against the crew's beat to `BepInEx/LogOutput.log`, to debug multiplayer sync |
 
 ## Multiplayer
 
