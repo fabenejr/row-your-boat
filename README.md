@@ -16,7 +16,7 @@ Craft an oar, equip it, sit on a bench: your character grabs it over the side an
 W/S shift gears just like the helm's rudder, and the more of the crew rows, the faster you go.
 
 <!-- Absolute URLs so the images also show on Thunderstore, which ships this file without docs/. -->
-![Rowing a longship, with the crew panel on the left](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/rowing.jpg)
+![Rowing a longship, with the crew panel on the left](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/rowing.jpg?v=2)
 
 ## How to craft the oars
 
@@ -24,7 +24,7 @@ Two oars, two workbenches. Equip the oar like a weapon, climb aboard and sit on 
 
 | Oar | Drakkar Oar |
 | --- | --- |
-| ![Oar recipe at the workbench](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/craft-oar.png) | ![Drakkar Oar recipe at the workbench](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/craft-drakkar-oar.png) |
+| ![Oar recipe at the workbench](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/craft-oar.png?v=2) | ![Drakkar Oar recipe at the workbench](https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/craft-drakkar-oar.png?v=2) |
 | **Workbench level 1**<br>6 Fine Wood<br>Rows the raft, karve and longship | **Workbench level 2**<br>16 Yggdrasil Wood, 8 Resin<br>The only oar that rows the Drakkar, and it rows every other ship too |
 
 ## Getting started in 4 steps
@@ -73,7 +73,7 @@ Only the crew on the benches row: whoever is at the helm steers, and holding on 
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/crew-panel.png" alt="Crew panel: the ship from above with each rower at their seat" width="180">
+<img src="https://raw.githubusercontent.com/fabenejr/row-your-boat/main/docs/images/crew-panel.png?v=2" alt="Crew panel: the ship from above with each rower at their seat" width="180">
 
 *The crew panel: your ship from above, with each rower at their seat.*
 
