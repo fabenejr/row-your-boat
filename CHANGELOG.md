@@ -8,6 +8,19 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+### Added
+
+- `DebugRowingSync` (off by default) logs each rower's stroke against the crew's beat to `BepInEx/LogOutput.log`,
+  to help track down rowers whose animation drifts in multiplayer.
+
+### Fixed
+
+- A rower's animation no longer freezes, or plays backwards, for a moment when someone shifts gear or starts
+  rowing while the crew is rowing: the stroke now speeds up or slows down by at most half to fall back in
+  step, and starts on the crew's beat instead of a gear's guess.
+- Other players' oars no longer look turned the wrong way while they row: they were left in the weapon grip,
+  because the oar was only recognized in your own hands.
+
 ### Changed
 
 - The README now shows the oar recipes as in-game screenshots, plus a picture of rowing and of the crew panel.

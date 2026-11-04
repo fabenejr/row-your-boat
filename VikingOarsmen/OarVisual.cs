@@ -43,12 +43,14 @@ namespace VikingOarsmen
 
         // Read by name, so a game update renaming it only leaves the oar in its weapon grip.
         private static readonly FieldInfo s_rightItemInstanceField = AccessTools.Field(typeof(VisEquipment), "m_rightItemInstance");
+        private static readonly FieldInfo s_rightItemHashField = AccessTools.Field(typeof(VisEquipment), "m_currentRightItemHash");
 
         private Player _player;
         private VisEquipment _visEquipment;
         private RowerAnimation _animation;
         private Ship _ship;
         private ZDOID _shipId = ZDOID.None;
+        private ZDOID _missingShipLogged = ZDOID.None;
 
         // Whether the gunwale was found, and the rower position (in ship space) it was found for.
         private bool _fitted;
@@ -139,7 +141,7 @@ namespace VikingOarsmen
                 return;
             }
 
-            Vector3 tip = model.TransformPoint(0f, 0f, OarItem.BladeTipZ(_player.GetCurrentWeapon()));
+            Vector3 tip = model.TransformPoint(0f, 0f, OarItem.BladeTipZ(HeldItemHash()));
             float water = WaterLevel(tip);
             bool wet = tip.y < water;
             if (wet && !_bladeWet && _bladeTracked)
@@ -176,7 +178,7 @@ namespace VikingOarsmen
             GameObject held = s_rightItemInstanceField != null && _visEquipment != null
                 ? s_rightItemInstanceField.GetValue(_visEquipment) as GameObject
                 : null;
-            if (rowing && held != null && OarItem.IsOar(_player.GetCurrentWeapon()))
+            if (rowing && held != null && OarItem.IsOarHash(HeldItemHash()))
             {
                 if (held != _rowingGripInstance || mirrored != _rowingGripMirrored)
                 {
@@ -188,6 +190,10 @@ namespace VikingOarsmen
                     }
                     _rowingGripInstance = held;
                     _rowingGripMirrored = mirrored;
+                    if (Plugin.DebugRowingSync.Value)
+                    {
+                        Plugin.Log.LogInfo($"[sync] {_player.GetPlayerName()}: oar in the rowing grip, {(mirrored ? "left" : "right")} hand");
+                    }
                 }
                 return;
             }
@@ -197,6 +203,19 @@ namespace VikingOarsmen
                 ReleaseGrip(_rowingGripInstance);
             }
             _rowingGripInstance = null;
+        }
+
+        /// <summary>
+        /// Prefab name hash of the item in the player's right hand, as VisEquipment shows it (synced to every
+        /// client), or 0. Not GetCurrentWeapon: other players' equipment is never filled in on this client, so
+        /// for them it is never the oar and they would keep the weapon grip while rowing.
+        /// </summary>
+        private int HeldItemHash()
+        {
+            return s_rightItemHashField != null && _visEquipment != null
+                && s_rightItemHashField.GetValue(_visEquipment) is int hash
+                ? hash
+                : 0;
         }
 
         /// <summary>
@@ -257,6 +276,13 @@ namespace VikingOarsmen
                 GameObject shipObject = ZNetScene.instance != null ? ZNetScene.instance.FindInstance(shipId) : null;
                 _ship = shipObject != null ? shipObject.GetComponent<Ship>() : null;
                 _fitted = false;
+            }
+
+            // The ZDO says rowing but the ship isn't in this client's scene: the rower reads as not rowing.
+            if (_ship == null && Plugin.DebugRowingSync.Value && shipId != _missingShipLogged)
+            {
+                _missingShipLogged = shipId;
+                Plugin.Log.LogInfo($"[sync] {_player.GetPlayerName()}: rowing ship {shipId} not found in this client's scene");
             }
 
             return _ship;

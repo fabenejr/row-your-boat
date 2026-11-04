@@ -174,6 +174,37 @@ namespace VikingOarsmen
             return kind != null ? kind.BladeTipZ : DefaultBladeTipZ;
         }
 
+        /// <summary>
+        /// True if the item with this prefab name hash (the stable hash the game syncs for what a player holds,
+        /// see VisEquipment) is one of the oars. What other players hold is only known this way: their
+        /// ItemData is never filled in on this client.
+        /// </summary>
+        internal static bool IsOarHash(int prefabHash)
+        {
+            return KindOf(prefabHash) != null;
+        }
+
+        /// <summary>
+        /// <see cref="BladeTipZ(ItemDrop.ItemData)"/> for an oar known by its prefab name hash.
+        /// </summary>
+        internal static float BladeTipZ(int prefabHash)
+        {
+            OarKind kind = KindOf(prefabHash);
+            return kind != null ? kind.BladeTipZ : DefaultBladeTipZ;
+        }
+
+        private static OarKind KindOf(int prefabHash)
+        {
+            foreach (OarKind kind in s_kinds)
+            {
+                if (kind.PrefabName.GetStableHashCode() == prefabHash)
+                {
+                    return kind;
+                }
+            }
+            return null;
+        }
+
         private static OarKind KindOf(ItemDrop.ItemData item)
         {
             if (item == null || item.m_dropPrefab == null)
