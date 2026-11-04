@@ -8,6 +8,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+## 3.3.0 - 2026-11-03
+
 ### Added
 
 - `DebugRowingSync` (off by default) logs each rower's stroke against the crew's beat to `BepInEx/LogOutput.log`,
