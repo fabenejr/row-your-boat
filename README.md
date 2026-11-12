@@ -31,7 +31,7 @@ Two oars, two workbenches. Equip the oar like a weapon, climb aboard and sit on 
 
 1. **Craft and equip.** Make the oar at the workbench and equip it like a weapon.
 2. **Sit on a bench.** Board a ship and press **E** on a bench. Rowing starts automatically, in neutral.
-3. **Shift gears.** **W**/**S** step through the gears, same controls as the ship's own rudder, minus steering. While rowing, W/S never stand you up.
+3. **Shift gears.** **W**/**S** (or the gamepad's left stick up/down, or whatever keys you mapped to move forward and back) step through the gears, same controls as the ship's own rudder, minus steering. While rowing, they never stand you up.
 4. **Get up.** Leave the bench with **E** or **Jump**, same as the helm. Getting up, dying or switching away from the oar stops rowing immediately.
 
 | Gear | Reverse | Neutral | Gear 1 | Gear 2 | Gear 3 |

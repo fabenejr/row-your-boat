@@ -37,11 +37,48 @@ namespace VikingOarsmen
         // Time accumulated since the last stamina check for the current gear.
         private static float s_staminaTimer;
 
+        // Stick/key travel (0..1) that counts as a gear press, and the lower travel that lets go of it again,
+        // so a stick resting near the threshold doesn't shift gear twice.
+        private const float PressThreshold = 0.6f;
+        private const float ReleaseThreshold = 0.3f;
+
+        // Forward/backward as last seen in SetControls, and the presses it saw since Update last looked.
+        private static bool s_forwardHeld;
+        private static bool s_backwardHeld;
+        private static bool s_forwardPressed;
+        private static bool s_backwardPressed;
+
+        /// <summary>
+        /// Called by the Player.SetControls patch with the local player's raw movement input, before it is
+        /// cleared for rowing. Reading it here (not ZInput's Forward/Backward buttons) covers the gamepad's
+        /// left stick and remapped keys, which is exactly what the game itself moves the player with.
+        /// </summary>
+        internal static void ReadMoveInput(Vector3 movedir)
+        {
+            s_forwardPressed |= Press(movedir.z, ref s_forwardHeld);
+            s_backwardPressed |= Press(-movedir.z, ref s_backwardHeld);
+        }
+
+        // True on the update the axis goes past the press threshold, until it falls back below the release one.
+        private static bool Press(float axis, ref bool held)
+        {
+            bool active = axis > (held ? ReleaseThreshold : PressThreshold);
+            bool pressed = active && !held;
+            held = active;
+            return pressed;
+        }
+
         /// <summary>
         /// Called every frame by Plugin.Update().
         /// </summary>
         internal static void Update()
         {
+            // Taken every frame, even when nothing is read below, so a press never waits around for later.
+            bool forwardPressed = s_forwardPressed;
+            bool backwardPressed = s_backwardPressed;
+            s_forwardPressed = false;
+            s_backwardPressed = false;
+
             Player player = Player.m_localPlayer;
             if (player == null)
             {
@@ -59,7 +96,7 @@ namespace VikingOarsmen
                 // Hint why W/S does nothing, same spirit as the old "sit on a bench" message, but only
                 // when the player is actually trying: seated, without the right oar, pressing a rowing key.
                 if (onBench && !hasOar && inputAllowed
-                    && (ZInput.GetButtonDown("Forward") || ZInput.GetButtonDown("Backward")))
+                    && (forwardPressed || backwardPressed))
                 {
                     player.Message(MessageHud.MessageType.Center, OarItem.IsOar(player.GetCurrentWeapon())
                         ? "This oar can't reach the water from here. Equip the Drakkar Oar."
@@ -84,11 +121,11 @@ namespace VikingOarsmen
             RowingGear previousGear = s_desiredGear;
             if (inputAllowed)
             {
-                if (ZInput.GetButtonDown("Forward"))
+                if (forwardPressed)
                 {
                     s_desiredGear = StepForward(s_desiredGear);
                 }
-                else if (ZInput.GetButtonDown("Backward"))
+                else if (backwardPressed)
                 {
                     s_desiredGear = StepBackward(s_desiredGear);
                 }
