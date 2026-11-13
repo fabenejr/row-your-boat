@@ -95,7 +95,7 @@ namespace VikingOarsmen
             {
                 // Hint why W/S does nothing, same spirit as the old "sit on a bench" message, but only
                 // when the player is actually trying: seated, without the right oar, pressing a rowing key.
-                if (onBench && !hasOar && inputAllowed
+                if (Plugin.ShowOarHint.Value && onBench && !hasOar && inputAllowed
                     && (forwardPressed || backwardPressed))
                 {
                     player.Message(MessageHud.MessageType.Center, OarItem.IsOar(player.GetCurrentWeapon())

@@ -13,6 +13,16 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 - Shifting gear now works with a gamepad's left stick (up/down) and with remapped movement keys, not only
   with W/S.
 
+### Added
+
+- `SteeringMultiplier` (off at `0` by default) makes rowing turn the ship. Above 0 it swings away from the side
+  the rowers sit on, and the other way when rowing in reverse, so crews have to balance both sides to go
+  straight. Negative values turn it towards the rowing side.
+- `ShowOarHint` turns off the "Equip the oar to row." message (and the Drakkar Oar one) shown when you sit on
+  a bench without the right oar and press W or S.
+- `DebugSkipFaceStern` and `DebugSkipLean` (off by default) switch off the rower's turn towards the stern and
+  lean over the gunwale, to help track down the cape and head jitter while rowing.
+
 ## 3.3.0 - 2026-11-03
 
 ### Added

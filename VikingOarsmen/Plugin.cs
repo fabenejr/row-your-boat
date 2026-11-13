@@ -31,17 +31,21 @@ namespace VikingOarsmen
         internal static ConfigEntry<float> Gear3Multiplier;
         internal static ConfigEntry<float> ReverseMultiplier;
         internal static ConfigEntry<float> MaxRowingPower;
+        internal static ConfigEntry<float> SteeringMultiplier;
         internal static ConfigEntry<float> RampUpTime;
         internal static ConfigEntry<float> StaminaDrainAmount;
         internal static ConfigEntry<float> StaminaDrainIntervalSlow;
         internal static ConfigEntry<float> StaminaDrainIntervalHalf;
         internal static ConfigEntry<float> StaminaDrainIntervalFull;
+        internal static ConfigEntry<bool> ShowOarHint;
         internal static ConfigEntry<float> StrokeSpeed;
         internal static ConfigEntry<bool> Splash;
         internal static ConfigEntry<bool> ShowCrewHud;
         internal static ConfigEntry<bool> RowingSound;
         internal static ConfigEntry<float> RowingSoundVolume;
         internal static ConfigEntry<bool> DebugRowingSync;
+        internal static ConfigEntry<bool> DebugSkipFaceStern;
+        internal static ConfigEntry<bool> DebugSkipLean;
 
         // Harmony instance that owns all patches applied by this mod.
         private Harmony _harmony;
@@ -62,6 +66,9 @@ namespace VikingOarsmen
                 "Thrust in reverse, as a multiple of PowerPerRower. Negative pushes the ship backward.");
             MaxRowingPower = Config.Bind("Physics", "MaxRowingPower", 1.5f,
                 "Maximum total rowing thrust, ahead or astern. 1.0 = same as a full sail with a strong tailwind.");
+            SteeringMultiplier = Config.Bind("Physics", "SteeringMultiplier", 0f,
+                "How strongly rowing turns the ship. 0 = off. Above 0 the ship turns away from the side the rowers sit on, " +
+                "and the other way when rowing in reverse; rowers on both sides cancel out. Negative values turn it towards that side.");
             RampUpTime = Config.Bind("Physics", "RampUpTime", 1.5f,
                 "Seconds for the rowing thrust to reach a new target (crew changes, gear shifts, stopping).");
             StaminaDrainAmount = Config.Bind("Gameplay", "StaminaDrainAmount", 6.0f,
@@ -72,6 +79,8 @@ namespace VikingOarsmen
                 "Seconds between strokes in Half gear (2).");
             StaminaDrainIntervalFull = Config.Bind("Gameplay", "StaminaDrainIntervalFull", 1.0f,
                 "Seconds between strokes in Full gear (3).");
+            ShowOarHint = Config.Bind("Gameplay", "ShowOarHint", true,
+                "Show the \"Equip the oar to row.\" message (and the Drakkar Oar one) when you sit on a bench without the right oar and press W or S.");
             StrokeSpeed = Config.Bind("Visual", "StrokeSpeed", 1.0f,
                 "Speed of the rowing animation in every gear. 1.0 = the animation's own pace in Half gear (2); Slow and reverse are slower, Full faster.");
             Splash = Config.Bind("Visual", "Splash", true,
@@ -85,6 +94,10 @@ namespace VikingOarsmen
                     new AcceptableValueRange<float>(0f, 1f)));
             DebugRowingSync = Config.Bind("Debug", "DebugRowingSync", false,
                 "Log every rower's stroke phase against the crew's beat to BepInEx/LogOutput.log, to track down rowers whose animation drifts or stalls in multiplayer.");
+            DebugSkipFaceStern = Config.Bind("Debug", "DebugSkipFaceStern", false,
+                "Do not turn the rower to face the stern. Only to find out what makes the cape or head jitter while rowing; the rower then faces the way the bench does.");
+            DebugSkipLean = Config.Bind("Debug", "DebugSkipLean", false,
+                "Do not lean the rower over the gunwale. Only to find out what makes the cape or head jitter while rowing.");
 
             // Apply every [HarmonyPatch] found in this assembly.
             _harmony = new Harmony(PluginGuid);

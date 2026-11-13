@@ -117,8 +117,20 @@ namespace VikingOarsmen
                 FitToShip(ship, localRower);
             }
 
-            FaceStern(ship);
-            LeanOverGunwale(ship);
+            if (Plugin.DebugSkipFaceStern.Value)
+            {
+                FaceForward();
+            }
+            else
+            {
+                FaceStern(ship);
+            }
+
+            if (!Plugin.DebugSkipLean.Value)
+            {
+                LeanOverGunwale(ship);
+            }
+
             TrackSplash();
         }
 

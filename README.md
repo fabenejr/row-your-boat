@@ -61,7 +61,8 @@ Only the crew on the benches row: whoever is at the helm steers, and holding on 
 - **Gear shifting:** sitting on a bench with the oar equipped puts you in neutral automatically. W/S step through reverse, neutral and gears 1–3, exactly like steering a ship, except it never turns.
 - **Crew-powered speed:** each rower adds thrust based on their gear (reverse and gears 1–3), and the crew's thrust adds up: by default a rower in gear 1 adds 8% of the push of a full sail in a strong tailwind, and one in gear 3 about 14%, up to 1.5 times that sail in total. Thrust is scaled per ship type (raft, karve, longship, drakkar), and it eases in and out over a second and a half.
 - **A bench on the raft:** one crew member can sit at the front of the raft and row while another steers.
-- **Helm keeps control:** rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
+- **Helm keeps control:** by default rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
+- **Optional rowing turn:** set `SteeringMultiplier` above 0 and the ship swings away from the side the rowers sit on, the way a real boat does (starboard rowers turn it to port), and the other way in reverse. Rowers on both sides cancel out, so the crew has to coordinate. Negative values turn it towards the rowing side instead.
 - **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.
 
 ### Visuals
@@ -123,16 +124,20 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 | Physics | `Gear3Multiplier` | `1.8` | Thrust in gear 3, as a multiple of `PowerPerRower` |
 | Physics | `ReverseMultiplier` | `-1.0` | Thrust in reverse, as a multiple of `PowerPerRower` |
 | Physics | `MaxRowingPower` | `1.5` | Maximum total thrust, ahead or astern (1.0 = full sail with a strong tailwind) |
+| Physics | `SteeringMultiplier` | `0` | How strongly rowing turns the ship. 0 = off. Above 0 it turns away from the rowers' side (reversed when rowing in reverse); negative turns it towards that side |
 | Physics | `RampUpTime` | `1.5` | Seconds to reach a new thrust target (crew changes, gear shifts, stopping) |
 | Gameplay | `StaminaDrainAmount` | `6` | Stamina per stroke, any gear but neutral (0 disables the cost) |
 | Gameplay | `StaminaDrainIntervalSlow` | `2` | Seconds between strokes in gear 1 and reverse |
 | Gameplay | `StaminaDrainIntervalHalf` | `1.5` | Seconds between strokes in gear 2 |
 | Gameplay | `StaminaDrainIntervalFull` | `1` | Seconds between strokes in gear 3 |
+| Gameplay | `ShowOarHint` | `true` | Show the "Equip the oar to row." message when you sit on a bench without the right oar and press W or S |
 | Visual | `StrokeSpeed` | `1.0` | Speed of the rowing animation in every gear (1.0 = the animation's own pace in Half gear) |
 | Visual | `Splash` | `true` | Splash and play a sound when the blade hits the water |
 | Visual | `ShowCrewHud` | `true` | While you row, show a panel with how many aboard are rowing and a drawing of the ship with where each sits |
 | Audio | `RowingSound` | `true` | Play the sound of the oars on every stroke (a lone rower's, or the crew's) |
 | Audio | `RowingSoundVolume` | `1.0` | Volume of the rowing sound, relative to the game's sound effects volume (0 to 1) |
+| Debug | `DebugSkipFaceStern` | `false` | Do not turn the rower to face the stern, to track down cape or head jitter |
+| Debug | `DebugSkipLean` | `false` | Do not lean the rower over the gunwale, to track down cape or head jitter |
 | Debug | `DebugRowingSync` | `false` | Log each rower's stroke phase against the crew's beat to `BepInEx/LogOutput.log`, to debug multiplayer sync |
 
 ## Multiplayer
