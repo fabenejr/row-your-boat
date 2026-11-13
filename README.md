@@ -63,6 +63,7 @@ Only the crew on the benches row: whoever is at the helm steers, and holding on 
 - **A bench on the raft:** one crew member can sit at the front of the raft and row while another steers.
 - **Helm keeps control:** by default rowing only pushes along the bow and never turns the ship. The helmsman steers with the vanilla rudder and can't row; only the crew on the benches can.
 - **Optional rowing turn:** set `SteeringMultiplier` above 0 and the ship swings away from the side the rowers sit on, the way a real boat does (starboard rowers turn it to port), and the other way in reverse. Rowers on both sides cancel out, so the crew has to coordinate. Negative values turn it towards the rowing side instead.
+- **Speed limit and crew falloff:** two optional settings, off by default. `MaxRowingSpeed` stops the oars adding thrust above a speed, so oars and sail can't stack without limit. `CrewFalloff` makes each extra rower add a little less than the one before, so a full Drakkar crew doesn't scale in a straight line.
 - **Stamina cost:** each stroke costs stamina, on a per-gear cadence (gears 2 and 3 stroke faster, so they drain faster). Running out withholds that gear's thrust — you keep your selected gear, and it resumes on its own once stamina refills, like swinging a weapon without enough stamina.
 
 ### Visuals
@@ -88,6 +89,7 @@ Only the crew on the benches row: whoever is at the helm steers, and holding on 
 
 - **Crew in time:** everyone aboard rows to the same beat, and every player sees the same strokes.
 - **Multiplayer-aware:** everyone sees each other's oars, and thrust is applied by the ship's owner, so rowing works for passengers too.
+- **The host sets the rules:** the physics and stamina settings follow the host's values when the host has the mod, so everyone aboard rows by the same rules. Look and sound settings stay your own.
 
 ## Requirements
 
