@@ -29,8 +29,8 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ### Changed
 
-- The `Physics` settings and the stamina settings are now set by the server: a player joining a game rows by the
-  host's values, so the ship's owner and every rower play by the same rules. Your own file is left alone.
+- The `Physics` settings and the stamina settings are now set by the host when it has the mod: a player joining
+  rows by the host's values, so the ship's owner and every rower play by the same rules. Your own file is left alone.
 
 ## 3.3.0 - 2026-11-03
 

@@ -148,9 +148,10 @@ Every player who wants to row, see oars or own a rowed ship needs the mod instal
 Dedicated servers don't need it.
 
 **The host decides how the ship rows.** The `Physics` settings and the stamina settings under `Gameplay` are
-admin-only: a player joining a server (or a host's game) rows by the host's values, so the ship's owner and every
-rower play by the same rules. Your own config file is untouched and comes back when you leave. Only the
-look and sound settings stay yours.
+admin-only: a player joining a game whose host has the mod (a player's game, or a dedicated server that also has
+the mod and Jötunn) rows by the host's values, so the ship's owner and every rower play by the same rules. A server
+without the mod sends nothing, so your own values apply. Your own config file is untouched. Only the look and
+sound settings stay yours.
 
 How it works: each rower writes the ID of the ship they are rowing to their own player data,
 which Valheim syncs to everyone. The client that owns the ship (usually the helmsman) applies the
