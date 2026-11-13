@@ -124,6 +124,8 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 | Physics | `Gear3Multiplier` | `1.8` | Thrust in gear 3, as a multiple of `PowerPerRower` |
 | Physics | `ReverseMultiplier` | `-1.0` | Thrust in reverse, as a multiple of `PowerPerRower` |
 | Physics | `MaxRowingPower` | `1.5` | Maximum total thrust, ahead or astern (1.0 = full sail with a strong tailwind) |
+| Physics | `MaxRowingSpeed` | `0` | Speed in m/s above which rowing stops adding thrust, so oars and sail can't stack without limit. 0 = no limit |
+| Physics | `CrewFalloff` | `0` | How much each extra rower adds less than the one before (0 to 0.5). 0.1 = the second rower adds 90%, the third 81%. 0 = every rower adds the same |
 | Physics | `SteeringMultiplier` | `0` | How strongly rowing turns the ship. 0 = off. Above 0 it turns away from the rowers' side (reversed when rowing in reverse); negative turns it towards that side |
 | Physics | `RampUpTime` | `1.5` | Seconds to reach a new thrust target (crew changes, gear shifts, stopping) |
 | Gameplay | `StaminaDrainAmount` | `6` | Stamina per stroke, any gear but neutral (0 disables the cost) |
@@ -144,6 +146,11 @@ The settings file is created on first launch at `BepInEx/config/com.fabenejr.vik
 
 Every player who wants to row, see oars or own a rowed ship needs the mod installed.
 Dedicated servers don't need it.
+
+**The host decides how the ship rows.** The `Physics` settings and the stamina settings under `Gameplay` are
+admin-only: a player joining a server (or a host's game) rows by the host's values, so the ship's owner and every
+rower play by the same rules. Your own config file is untouched and comes back when you leave. Only the
+look and sound settings stay yours.
 
 How it works: each rower writes the ID of the ship they are rowing to their own player data,
 which Valheim syncs to everyone. The client that owns the ship (usually the helmsman) applies the

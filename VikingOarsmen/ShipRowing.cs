@@ -26,6 +26,15 @@ namespace VikingOarsmen
         // Current turning push in the same units, positive towards starboard, eased like _power.
         private float _turn;
 
+        private struct Rower
+        {
+            public float Weight;
+            public float Side;
+        }
+
+        // Reused every physics step so counting the crew allocates nothing.
+        private readonly System.Collections.Generic.List<Rower> _crew = new System.Collections.Generic.List<Rower>();
+
         private void Awake()
         {
             _ship = GetComponent<Ship>();
@@ -71,7 +80,14 @@ namespace VikingOarsmen
 
             // Vanilla sails push with m_sailForceFactor per physics step at full sail in a strong tailwind,
             // so scaling that value gives each ship type its own "wind at your back" speed.
-            _body.AddForce(forward * (_ship.m_sailForceFactor * _power), ForceMode.VelocityChange);
+            // Past MaxRowingSpeed (0 = no limit) the oars stop adding thrust in that direction, so they can't stack with the sail forever.
+            float maxSpeed = Plugin.MaxRowingSpeed.Value;
+            float along = Vector3.Dot(_body.linearVelocity, forward);
+            bool atSpeedLimit = maxSpeed > 0f && along * Mathf.Sign(_power) >= maxSpeed;
+            if (!atSpeedLimit)
+            {
+                _body.AddForce(forward * (_ship.m_sailForceFactor * _power), ForceMode.VelocityChange);
+            }
 
             // Oars on one side push that side of the hull forward and swing the bow away from it. Positive yaw
             // is clockwise seen from above (towards starboard), hence the minus. Scaled like the thrust so each
@@ -94,6 +110,7 @@ namespace VikingOarsmen
         {
             weight = 0f;
             sideWeight = 0f;
+            _crew.Clear();
             ZDOID shipId = _nview.GetZDO().m_uid;
             foreach (Player player in Player.GetAllPlayers())
             {
@@ -101,9 +118,20 @@ namespace VikingOarsmen
                 {
                     float gearWeight = GetGearWeight(RowingController.GetRowingGear(player));
                     float side = transform.InverseTransformPoint(player.transform.position).x >= 0f ? 1f : -1f;
-                    weight += gearWeight;
-                    sideWeight += gearWeight * side;
+                    _crew.Add(new Rower { Weight = gearWeight, Side = side });
                 }
+            }
+
+            // Each extra rower adds a bit less than the one before (CrewFalloff), strongest strokes first so the
+            // result doesn't depend on the order players happen to be listed in.
+            _crew.Sort((a, b) => Mathf.Abs(b.Weight).CompareTo(Mathf.Abs(a.Weight)));
+            float keep = 1f - Mathf.Clamp(Plugin.CrewFalloff.Value, 0f, 0.5f);
+            float share = 1f;
+            foreach (Rower rower in _crew)
+            {
+                weight += rower.Weight * share;
+                sideWeight += rower.Weight * rower.Side * share;
+                share *= keep;
             }
         }
 

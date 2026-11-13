@@ -15,6 +15,10 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ### Added
 
+- `MaxRowingSpeed` (off at `0` by default): above this speed in m/s the oars stop adding thrust, so rowing
+  with the sail up can't push the ship faster without limit.
+- `CrewFalloff` (off at `0` by default): each extra rower adds a little less than the one before, so a big
+  crew on the Drakkar doesn't scale in a straight line.
 - `SteeringMultiplier` (off at `0` by default) makes rowing turn the ship. Above 0 it swings away from the side
   the rowers sit on, and the other way when rowing in reverse, so crews have to balance both sides to go
   straight. Negative values turn it towards the rowing side.
@@ -22,6 +26,11 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
   a bench without the right oar and press W or S.
 - `DebugSkipFaceStern` and `DebugSkipLean` (off by default) switch off the rower's turn towards the stern and
   lean over the gunwale, to help track down the cape and head jitter while rowing.
+
+### Changed
+
+- The `Physics` settings and the stamina settings are now set by the server: a player joining a game rows by the
+  host's values, so the ship's owner and every rower play by the same rules. Your own file is left alone.
 
 ## 3.3.0 - 2026-11-03
 
