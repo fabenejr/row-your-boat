@@ -13,7 +13,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>VikingOarsmen</AssemblyName>
     <RootNamespace>VikingOarsmen</RootNamespace>
-    <Version>3.3.0</Version>
+    <Version>3.4.0</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <DebugType>portable</DebugType>
