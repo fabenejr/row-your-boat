@@ -8,6 +8,11 @@ Add your changes under **Unreleased**; `scripts/release.ps1` turns that section 
 
 ## Unreleased
 
+### Fixed
+
+- Shifting gear now works with a gamepad's left stick (up/down) and with remapped movement keys, not only
+  with W/S.
+
 ## 3.3.0 - 2026-11-03
 
 ### Added

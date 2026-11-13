@@ -96,7 +96,14 @@ namespace VikingOarsmen
         [HarmonyPrefix]
         private static void Player_SetControls_Prefix(Player __instance, ref Vector3 movedir)
         {
-            if (__instance == Player.m_localPlayer && RowingController.IsRowingMode(__instance))
+            if (__instance != Player.m_localPlayer)
+            {
+                return;
+            }
+
+            // Gear shifts are read from the same input the game moves the player with (gamepad included).
+            RowingController.ReadMoveInput(movedir);
+            if (RowingController.IsRowingMode(__instance))
             {
                 movedir = Vector3.zero;
             }
